@@ -1,3 +1,11 @@
+// All core modules must be added here
+#![allow(non_snake_case)]
+mod core;
+mod lights;
+
 fn main() {
-    println!("Hello, world!");
+    // Parse command lines
+    // Init function
+
+    // Cleanup function
 }
