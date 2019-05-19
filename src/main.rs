@@ -9,6 +9,8 @@ mod core;
 mod lights;
 mod accelerators;
 mod integrators;
+mod cameras;
+mod samplers;
 
 fn main() {
     // Parse command lines
