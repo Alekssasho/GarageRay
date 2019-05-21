@@ -1,6 +1,8 @@
-use crate::lights;
 use crate::accelerators;
+use crate::core::*;
+use crate::lights;
 use crate::math::Vec3;
+use crate::ray::*;
 
 pub struct Scene {
     lights: Vec<Box<lights::Light>>,
@@ -10,16 +12,22 @@ pub struct Scene {
 }
 
 impl Scene {
-    fn new(lights: Vec<Box<lights::Light>>, aggregate: Box<accelerators::Primitive>) -> Scene{
+    fn new(lights: Vec<Box<lights::Light>>, aggregate: Box<accelerators::Primitive>) -> Scene {
         let world_bound = aggregate.world_bounds();
 
         for light in &lights {
             light.preprocess();
         }
 
-        Scene { lights, aggregate, world_bound }
+        Scene {
+            lights,
+            aggregate,
+            world_bound,
+        }
     }
 
-    // Intersect 24
+    pub fn intersect(&self, ray: &Ray) -> (SurfaceInteraction, bool) {
+        (SurfaceInteraction {}, true)
+    }
     // IntersectP 24
 }

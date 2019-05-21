@@ -3,14 +3,16 @@
 // List all external crate
 // extern crate cgmath;
 
-// All core modules must be added here
-mod math;
-mod core;
-mod lights;
+// All root level modules must be added here
 mod accelerators;
-mod integrators;
 mod cameras;
+mod core;
+mod integrators;
+mod lights;
+mod math;
+mod ray;
 mod samplers;
+mod spectrum;
 
 fn main() {
     // Parse command lines
