@@ -1,8 +1,8 @@
 use crate::cameras::Camera;
-use crate::core::parallel_for_2d;
-use crate::core::Scene;
+use crate::core::reflection::BSDF_TYPES::*;
+use crate::core::*;
 use crate::integrators::Integrator;
-use crate::math::{Bounds2Di, Point2i, Vec2i};
+use crate::math::*;
 use crate::ray::*;
 use crate::samplers::Sampler;
 use crate::spectrum::Spectrum;
@@ -23,6 +23,60 @@ impl SampleIntegrator {
             sampler,
             camera,
             implementor,
+        }
+    }
+
+    pub fn specular_reflect(
+        &self,
+        ray: &RayDifferential,
+        isect: &SurfaceInteraction,
+        scene: &Scene,
+        sampler: &mut Sampler,
+        depth: i32,
+    ) -> Spectrum {
+        let wo = isect.wo;
+        let (f, wi, pdf) =
+            isect
+                .bsdf
+                .sample_f(&wo, &sampler.get_2d(), BSDF_REFLECTION | BSDF_SPECULAR);
+        let ns = isect.shading.n;
+        if pdf > 0.0 && !f.is_black() && (dot(wi, ns).abs() != 0.0) {
+            // Compute ray differential rd for specular
+            // ray should be from upper line
+            f * self
+                .implementor
+                .light_incoming(self, ray, scene, sampler, depth + 1)
+                * dot(wi, ns).abs()
+                / pdf
+        } else {
+            Spectrum::new()
+        }
+    }
+
+    pub fn specular_transmit(
+        &self,
+        ray: &RayDifferential,
+        isect: &SurfaceInteraction,
+        scene: &Scene,
+        sampler: &mut Sampler,
+        depth: i32,
+    ) -> Spectrum {
+        let wo = isect.wo;
+        let (f, wi, pdf) =
+            isect
+                .bsdf
+                .sample_f(&wo, &sampler.get_2d(), BSDF_TRANSMISSION | BSDF_SPECULAR);
+        let ns = isect.shading.n;
+        if pdf > 0.0 && !f.is_black() && (dot(wi, ns).abs() != 0.0) {
+            // Compute ray differential rd for specular
+            // ray should be from upper line
+            f * self
+                .implementor
+                .light_incoming(self, ray, scene, sampler, depth + 1)
+                * dot(wi, ns).abs()
+                / pdf
+        } else {
+            Spectrum::new()
         }
     }
 }

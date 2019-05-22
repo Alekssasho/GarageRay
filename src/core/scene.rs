@@ -5,7 +5,7 @@ use crate::math::Vec3;
 use crate::ray::*;
 
 pub struct Scene {
-    lights: Vec<Box<lights::Light>>,
+    pub lights: Vec<Box<lights::Light>>,
     aggregate: Box<accelerators::Primitive>,
 
     world_bound: Vec3,
@@ -27,7 +27,7 @@ impl Scene {
     }
 
     pub fn intersect(&self, ray: &Ray) -> (SurfaceInteraction, bool) {
-        (SurfaceInteraction {}, true)
+        (SurfaceInteraction::new(), true)
     }
     // IntersectP 24
 }

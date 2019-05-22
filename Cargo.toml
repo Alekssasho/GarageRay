@@ -6,3 +6,4 @@ edition = "2018"
 
 [dependencies]
 cgmath = "0.17.0"
+bitmask = "0.5.0"

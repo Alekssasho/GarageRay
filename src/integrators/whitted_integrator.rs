@@ -1,8 +1,9 @@
 use super::sample_integrator::*;
 use crate::cameras::Camera;
+use crate::core::reflection::BxDFType;
 use crate::core::*;
 use crate::integrators::Integrator;
-use crate::math::{Bounds2Di, Point2i, Vec2i};
+use crate::math::*;
 use crate::ray::*;
 use crate::samplers::Sampler;
 use crate::spectrum::Spectrum;
@@ -23,13 +24,37 @@ impl SampleIntegratorInterface for WhittedIntegrator {
         // Memory Arena
         depth: i32,
     ) -> Spectrum {
-        let mut light = Spectrum::new();
+        let mut L = Spectrum::new();
         let (isect, has_intersected) = scene.intersect(&ray.ray);
         if !has_intersected {
-            // Page 34
-
-            return light;
+            for light in scene.lights.iter() {
+                L += light.light_emission(ray);
+            }
+            return L;
         }
-        light
+
+        let n = isect.shading.n;
+        let wo = isect.wo;
+        isect.compute_scattering_functions(ray);
+        L += isect.light_emission(&wo);
+
+        for light in scene.lights.iter() {
+            let (Li, wi, pdf, visibiliy) = light.sample_light_incoming(&isect, &sampler.get_2d());
+            if Li.is_black() || pdf == 0.0 {
+                continue;
+            }
+
+            let f = isect.bsdf.f(&wo, &wi, BxDFType::all());
+            if !f.is_black() && visibiliy.unoccluded(scene) {
+                L += f * Li * dot(wi, n).abs() / pdf;
+            }
+        }
+
+        if depth + 1 < self.max_depth {
+            L += sample_integrator.specular_reflect(ray, &isect, scene, sampler, depth);
+            L += sample_integrator.specular_transmit(ray, &isect, scene, sampler, depth);
+        }
+
+        L
     }
 }
