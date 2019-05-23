@@ -1,4 +1,4 @@
-pub type Vec2 = cgmath::Vector2<f32>;
+//pub type Vec2 = cgmath::Vector2<f32>;
 pub type Vec2i = cgmath::Vector2<i32>;
 pub type Vec3 = cgmath::Vector3<f32>;
 
@@ -9,6 +9,7 @@ pub type Point3 = cgmath::Point3<f32>;
 pub type Normal3f = cgmath::Vector3<f32>;
 
 pub use cgmath::dot;
+pub use cgmath::vec3;
 
 use cgmath::*;
 
