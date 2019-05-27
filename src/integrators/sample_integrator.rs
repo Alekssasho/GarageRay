@@ -150,7 +150,7 @@ impl Integrator for SampleIntegrator {
 
                 self.camera.film().merge_film_tile(film_tile);
             },
-            Point2i::from((num_tiles.x, num_tiles.y)),
+            Point2i::from_vec(num_tiles),
         );
 
         self.camera.film().write_image();

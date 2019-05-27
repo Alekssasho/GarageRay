@@ -10,19 +10,38 @@ pub type Normal3f = cgmath::Vector3<f32>;
 
 pub use cgmath::dot;
 pub use cgmath::vec3;
+pub use cgmath::EuclideanSpace;
 
 use cgmath::*;
 
-pub struct Bounds2Di {
-    pub min: Vec2i,
-    pub max: Vec2i,
+pub struct Bounds2D<T> {
+    pub min: Vector2<T>,
+    pub max: Vector2<T>,
 }
 
-impl Bounds2Di {
-    pub fn diagonal(&self) -> Vec2i {
+impl<T: BaseNum> Bounds2D<T> {
+    pub fn diagonal(&self) -> Vector2<T> {
         self.max - self.min
     }
+
+    fn new(p: cgmath::Point2<T>) -> Bounds2D<T> {
+        Bounds2D {
+            min: p.to_vec(),
+            max: p.to_vec(),
+        }
+    }
 }
+
+impl<T: Bounded> Default for Bounds2D<T> {
+    fn default() -> Bounds2D<T> {
+        Bounds2D {
+            min: vec2(T::max_value(), T::max_value()),
+            max: vec2(T::min_value(), T::min_value()),
+        }
+    }
+}
+
+pub type Bounds2Di = Bounds2D<i32>;
 
 pub fn coordinate_system(v1: Vec3) -> (Vec3, Vec3, Vec3) {
     let v2;
