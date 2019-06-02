@@ -1,3 +1,6 @@
+// Matrix type is column major in cgmath, but row major in book
+// Most likely cgmath is implemented with right hand rule, but book is left handed
+
 //pub type Vec2 = cgmath::Vector2<f32>;
 pub type Vec2i = cgmath::Vector2<i32>;
 pub type Vec3 = cgmath::Vector3<f32>;
@@ -352,4 +355,77 @@ pub fn face_forward(n: Normal3f, v: Vec3) -> Normal3f {
     } else {
         n
     }
+}
+
+// Transformations
+pub struct Transform {
+    m: cgmath::Matrix4<f32>,
+    m_inv: cgmath::Matrix4<f32>,
+}
+
+impl Default for Transform {
+    fn default() -> Self {
+        Transform{
+            m: Matrix4::identity(),
+            m_inv: Matrix4::identity(),
+        }
+    }
+}
+
+impl From<Matrix4<f32>> for Transform {
+    fn from(mat: Matrix4<f32>) -> Transform {
+        Transform{
+            m: mat,
+            m_inv: mat.invert().unwrap(),
+        }
+    }
+}
+
+impl Transform {
+    pub fn new(m: Matrix4<f32>, m_inv: Matrix4<f32>) -> Transform {
+        Transform { m, m_inv }
+    }
+
+    pub fn inverse(&self) -> Transform {
+        Transform{ m: self.m_inv, m_inv: self.m }
+    }
+
+    pub fn transpose(&self) -> Transform {
+        Transform{ m: self.m.transpose(), m_inv: self.m_inv.transpose() }
+    }
+
+    pub fn has_scale() -> bool {
+        // TODO: implement me properly // page 88
+        false
+    }
+}
+
+pub fn translate(delta: Vec3) -> Transform {
+    let m = Matrix4::from_translation(delta);
+    let m_inv = Matrix4::from_translation(-delta);
+    Transform{ m, m_inv }
+}
+
+pub fn scale(x: f32, y: f32, z: f32) -> Transform {
+    let m = Matrix4::from_nonuniform_scale(x, y, z);
+    let m_inv = Matrix4::from_nonuniform_scale(1.0 / x, 1.0 / y, 1.0 / z);
+    Transform{ m, m_inv }
+}
+
+pub fn rotate_x(theta: f32) -> Transform {
+    let m = Matrix4::from_angle_x(Deg(theta));
+    let m_inv = m.transpose();
+    Transform{ m, m_inv }
+}
+
+pub fn rotate_y(theta: f32) -> Transform {
+    let m = Matrix4::from_angle_y(Deg(theta));
+    let m_inv = m.transpose();
+    Transform{ m, m_inv }
+}
+
+pub fn rotate_z(theta: f32) -> Transform {
+    let m = Matrix4::from_angle_z(Deg(theta));
+    let m_inv = m.transpose();
+    Transform{ m, m_inv }
 }
