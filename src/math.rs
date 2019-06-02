@@ -16,7 +16,10 @@ pub use cgmath::vec3;
 pub use cgmath::EuclideanSpace;
 
 use cgmath::*;
+use cgmath::Transform as Tr;
 use std::ops::Index;
+
+use crate::ray::Ray;
 
 pub fn min<T: BaseNum>(lhs: T, rhs: T) -> T {
     match lhs.partial_cmp(&rhs) {
@@ -289,7 +292,7 @@ pub type Bounds3Di = Bounds3D<i32>;
 pub type Bounds3Df = Bounds3D<f32>;
 
 // Bounds 3d freeroam functions
-pub fn union_3d_with_point<T: BaseNum>(b: &Bounds3D<T>, p: &Vector3<T>) -> Bounds3D<T> {
+pub fn union_3d_with_point<T: BaseNum>(b: &Bounds3D<T>, p: &cgmath::Point3<T>) -> Bounds3D<T> {
     Bounds3D {
         min: cgmath::Point3::new(min(b.min.x, p.x), min(b.min.y, p.y), min(b.min.z, p.z)),
         max: cgmath::Point3::new(max(b.max.x, p.x), max(b.max.y, p.y), max(b.min.z, p.z))
@@ -398,6 +401,56 @@ impl Transform {
         // TODO: implement me properly // page 88
         false
     }
+
+    pub fn transform_point(&self, p: Point3) -> Point3 {
+        self.m.transform_point(p)
+    }
+
+    pub fn transform_vec(&self, v: Vec3) -> Vec3 {
+        self.m.transform_vector(v)
+    }
+
+    pub fn transform_normal(&self, n: Vec3) -> Vec3 {
+        vec3(
+            self.m_inv.x[0] * n.x + self.m_inv.x[1] * n.y + self.m_inv.x[2] * n.z,
+            self.m_inv.y[0] * n.x + self.m_inv.y[1] * n.y + self.m_inv.y[2] * n.z,
+            self.m_inv.z[0] * n.x + self.m_inv.z[1] * n.y + self.m_inv.z[2] * n.z
+        )
+    }
+
+    pub fn transform_ray(&self, r: Ray) -> Ray {
+        let o = self.transform_point(r.o);
+        let d = self.transform_vec(r.d);
+        // Offset ray origin to edge of error bounds
+        Ray{o, d, ..r}
+    }
+
+    pub fn transform_bounds(&self, b: &Bounds3Df) -> Bounds3Df {
+        let ret = Bounds3Df::from_point(self.transform_point(b.min));
+        let ret = union_3d_with_point(&ret, &self.transform_point(Point3::new(b.max.x, b.min.y, b.min.z)));
+        let ret = union_3d_with_point(&ret, &self.transform_point(Point3::new(b.min.x, b.max.y, b.min.z)));
+        let ret = union_3d_with_point(&ret, &self.transform_point(Point3::new(b.min.x, b.min.y, b.max.z)));
+        let ret = union_3d_with_point(&ret, &self.transform_point(Point3::new(b.min.x, b.max.y, b.max.z)));
+        let ret = union_3d_with_point(&ret, &self.transform_point(Point3::new(b.max.x, b.max.y, b.min.z)));
+        let ret = union_3d_with_point(&ret, &self.transform_point(Point3::new(b.max.x, b.min.y, b.max.z)));
+        let ret = union_3d_with_point(&ret, &self.transform_point(b.max));
+        ret
+    }
+
+    pub fn swaps_handedness(&self) -> bool {
+        let det = self.m.determinant();
+        det < 0.0
+    }
+}
+
+impl std::ops::Mul for Transform {
+    type Output = Self;
+    fn mul(self, rhs: Self) -> Self {
+        Transform{
+            m: self.m * rhs.m,
+            m_inv: rhs.m_inv * self.m_inv
+        }
+    }
 }
 
 pub fn translate(delta: Vec3) -> Transform {
@@ -427,5 +480,17 @@ pub fn rotate_y(theta: f32) -> Transform {
 pub fn rotate_z(theta: f32) -> Transform {
     let m = Matrix4::from_angle_z(Deg(theta));
     let m_inv = m.transpose();
+    Transform{ m, m_inv }
+}
+
+pub fn rotate_axis(theta: f32, axis: Vec3) -> Transform {
+    let m = Matrix4::from_axis_angle(axis, Deg(theta));
+    let m_inv = m.transpose();
+    Transform{ m, m_inv }
+}
+
+pub fn look_at(pos: Point3, look: Point3, up: Vec3) -> Transform {
+    let m = Matrix4::look_at(pos, look, up);
+    let m_inv = m.invert().unwrap();
     Transform{ m, m_inv }
 }
