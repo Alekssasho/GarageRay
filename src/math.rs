@@ -19,7 +19,11 @@ use cgmath::*;
 use cgmath::Transform as Tr;
 use std::ops::Index;
 
+pub use num_traits::identities::Zero; // needed for vector is_zero method
+pub use cgmath::InnerSpace; // needed for normalize
+
 use crate::ray::Ray;
+use crate::core::{ Interaction, SurfaceInteraction, Shading };
 
 pub fn min<T: BaseNum>(lhs: T, rhs: T) -> T {
     match lhs.partial_cmp(&rhs) {
@@ -434,6 +438,33 @@ impl Transform {
         let ret = union_3d_with_point(&ret, &self.transform_point(Point3::new(b.max.x, b.max.y, b.min.z)));
         let ret = union_3d_with_point(&ret, &self.transform_point(Point3::new(b.max.x, b.min.y, b.max.z)));
         let ret = union_3d_with_point(&ret, &self.transform_point(b.max));
+        ret
+    }
+
+    pub fn transform_surface_interaction(&self, si: SurfaceInteraction) -> SurfaceInteraction {
+        // Transform p and pError
+        let mut ret = SurfaceInteraction{
+            interaction: Interaction {
+                p: si.interaction.p,
+                n: self.transform_normal(si.interaction.n).normalize(),
+                p_error: si.interaction.p_error,
+                wo: self.transform_vec(si.interaction.wo).normalize(),
+                ..si.interaction
+            },
+            dpdu: self.transform_vec(si.dpdu),
+            dpdv: self.transform_vec(si.dpdv),
+            dndu: self.transform_vec(si.dndu),
+            dndv: self.transform_vec(si.dndv),
+            shading: Shading{
+                n: self.transform_normal(si.shading.n).normalize(),
+                dpdu: self.transform_vec(si.shading.dpdu),
+                dpdv: self.transform_vec(si.shading.dpdv),
+                dndu: self.transform_vec(si.shading.dndu),
+                dndv: self.transform_vec(si.shading.dndv),
+            },
+            ..si
+        };
+        ret.shading.n = face_forward(ret.shading.n, ret.interaction.n);
         ret
     }
 

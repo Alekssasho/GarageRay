@@ -7,8 +7,9 @@ mod scene;
 
 pub use film::Film;
 pub use film::FilmTile;
-pub use interaction::SurfaceInteraction;
+pub use interaction::{ Interaction, SurfaceInteraction, Shading };
 pub use medium::Medium;
+pub use medium::MediumInterface;
 pub use parallel::parallel_for_2d;
 pub use reflection::BSDF;
 pub use scene::Scene;

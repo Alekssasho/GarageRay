@@ -34,7 +34,7 @@ impl SampleIntegratorInterface for WhittedIntegrator {
         }
 
         let n = isect.shading.n;
-        let wo = isect.wo;
+        let wo = isect.interaction.wo;
         isect.compute_scattering_functions(ray);
         L += isect.light_emission(&wo);
 

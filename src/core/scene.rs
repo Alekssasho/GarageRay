@@ -27,7 +27,7 @@ impl Scene {
     }
 
     pub fn intersect(&self, ray: &Ray) -> (SurfaceInteraction, bool) {
-        (SurfaceInteraction::new(), true)
+        (SurfaceInteraction::delete_me_default(), true)
     }
     // IntersectP 24
 }

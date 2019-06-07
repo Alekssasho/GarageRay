@@ -34,7 +34,7 @@ impl SampleIntegrator {
         sampler: &mut Sampler,
         depth: i32,
     ) -> Spectrum {
-        let wo = isect.wo;
+        let wo = isect.interaction.wo;
         let (f, wi, pdf) =
             isect
                 .bsdf
@@ -61,7 +61,7 @@ impl SampleIntegrator {
         sampler: &mut Sampler,
         depth: i32,
     ) -> Spectrum {
-        let wo = isect.wo;
+        let wo = isect.interaction.wo;
         let (f, wi, pdf) =
             isect
                 .bsdf
