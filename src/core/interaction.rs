@@ -18,11 +18,6 @@ impl Interaction {
     }
 }
 
-pub struct Shape{
-    reverse_orientation: bool,
-    transform_swaps_handedness: bool,
-}
-
 pub struct Shading {
     pub n: Normal3f,
     pub dpdu: Vec3,
@@ -71,7 +66,7 @@ impl SurfaceInteraction {
             dpdv: vec3(0.0, 0.0, 0.0),
             dndu: vec3(0.0, 0.0, 0.0),
             dndv: vec3(0.0, 0.0, 0.0),
-            shape: Box::new(Shape{ reverse_orientation: false, transform_swaps_handedness: false}),
+            shape: Box::new(Shape::default()),
             shading: Shading { n: vec3(0.0, 0.0, 0.0), dpdu: vec3(0.0, 0.0, 0.0), dpdv: vec3(0.0, 0.0, 0.0), dndu: vec3(0.0, 0.0, 0.0), dndv: vec3(0.0, 0.0, 0.0) },
             bsdf: BSDF {},
         }
