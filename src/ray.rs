@@ -5,7 +5,7 @@ use std::cell::Cell;
 pub struct Ray {
     pub o: Point3,
     pub d: Vec3,
-    pub tMax: Cell<f32>, // This is mutable in original C++ code so we need Cell to mutate it
+    pub t_max: Cell<f32>, // This is mutable in original C++ code so we need Cell to mutate it
     pub time: f32,
     pub medium: Option<Box<Medium>>,
 }
@@ -15,7 +15,7 @@ impl Ray {
         Ray {
             o,
             d,
-            tMax: Cell::new(std::f32::INFINITY),
+            t_max: Cell::new(std::f32::INFINITY),
             time: 0.0,
             medium: None,
         }

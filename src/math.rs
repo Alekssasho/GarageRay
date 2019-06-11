@@ -268,6 +268,65 @@ impl<T: BaseFloat> Bounds3D<T> {
     }
 }
 
+impl Bounds3D<f32> {
+    pub fn intersect_p(&self, ray: &Ray) -> (bool, f32, f32) {
+        let mut t0 = 0.0;
+        let mut t1 = ray.t_max.get();
+        for i in 0..3 {
+            let inv_ray_dir = 1.0 / ray.d[i];
+            let mut t_near = (self.min[i] - ray.o[i]) * inv_ray_dir;
+            let mut t_far = (self.max[i] - ray.o[i]) * inv_ray_dir;
+            if t_near > t_far {
+                std::mem::swap(&mut t_near, &mut t_far);
+                // Update t_far to ensure robust ray-bounds intersection
+                if t_near > t0 {
+                    t0 = t_near;
+                }
+                if t_far < t1 {
+                    t1 = t_far;
+                }
+                if t0 > t1 {
+                    return (false, 0.0, 0.0);
+                }
+            }
+        }
+        (true, t0, t1)
+    }
+
+    pub fn intersect_p_precomputed(&self, ray: &Ray, invDir: Vec3, dirIsNeg: &[i32]) -> bool {
+        let mut t_min = (self[  dirIsNeg[0]].x - ray.o.x) * invDir.x;
+        let mut t_max = (self[1-dirIsNeg[0]].x - ray.o.x) * invDir.x;
+
+        let ty_min = (self[  dirIsNeg[1]].y - ray.o.y) * invDir.y;
+        let ty_max = (self[1-dirIsNeg[1]].y - ray.o.y) * invDir.y;
+
+        let tz_min = (self[  dirIsNeg[2]].z - ray.o.z) * invDir.z;
+        let tz_max = (self[1-dirIsNeg[2]].z - ray.o.z) * invDir.z;
+        // Update t_max and ty_max to ensure robust bounds intersection
+        if t_min > ty_max || ty_min > t_max {
+            return false;
+        }
+        if ty_min > t_min {
+            t_min = ty_min;
+        }
+        if ty_max < t_max {
+            t_max = ty_max;
+        }
+
+        if t_min > tz_max || tz_min > t_max {
+            return false;
+        }
+        if tz_min > t_min {
+            t_min = tz_min;
+        }
+        if tz_max < t_max {
+            t_max = tz_max;
+        }
+
+        (t_min < ray.t_max.get()) && (t_max > 0.0)
+    }
+}
+
 impl<T> Index<i32> for Bounds3D<T> {
     type Output = cgmath::Point3<T>;
 
