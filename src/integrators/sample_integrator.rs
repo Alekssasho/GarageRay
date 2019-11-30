@@ -116,7 +116,8 @@ impl Integrator for SampleIntegrator {
                 let x1 = std::cmp::min(x0 + tile_size, sample_bounds.max.x);
                 let y0 = sample_bounds.min.y + tile.y * tile_size;
                 let y1 = std::cmp::min(y0 + tile_size, sample_bounds.max.y);
-                let tile_bounds = Bounds2Di::from_two_points(Point2i::new(x0, y0), Point2i::new(x1, y1));
+                let tile_bounds =
+                    Bounds2Di::from_two_points(Point2i::new(x0, y0), Point2i::new(x1, y1));
 
                 let film_tile = self.camera.film().get_film_tile(tile_bounds);
                 for pixel in film_tile.iter() {

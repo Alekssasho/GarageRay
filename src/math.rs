@@ -15,15 +15,16 @@ pub use cgmath::dot;
 pub use cgmath::vec3;
 pub use cgmath::EuclideanSpace;
 
-use cgmath::*;
 use cgmath::Transform as Tr;
+use cgmath::*;
 use std::ops::Index;
 
-pub use num_traits::identities::Zero; // needed for vector is_zero method
-pub use cgmath::InnerSpace; // needed for normalize
+pub use cgmath::{Deg, Rad};
+pub use cgmath::InnerSpace;
+pub use num_traits::identities::Zero; // needed for vector is_zero method // needed for normalize
 
+use crate::core::{Interaction, Shading, SurfaceInteraction};
 use crate::ray::Ray;
-use crate::core::{ Interaction, SurfaceInteraction, Shading };
 
 pub fn min<T: BaseNum>(lhs: T, rhs: T) -> T {
     match lhs.partial_cmp(&rhs) {
@@ -43,6 +44,16 @@ pub fn max<T: BaseNum>(lhs: T, rhs: T) -> T {
     }
 }
 
+pub fn clamp<T: BaseNum>(val: T, low: T, high: T) -> T {
+    if val < low {
+        low
+    } else if val > high {
+        high
+    } else {
+        val
+    }
+}
+
 pub fn lerp<T: BaseNum>(t: T, lhs: T, rhs: T) -> T {
     (T::from(1.0).unwrap() - t) * lhs + t * rhs
 }
@@ -59,10 +70,7 @@ impl<T: BaseNum> Bounds2D<T> {
     }
 
     pub fn from_point(p: cgmath::Point2<T>) -> Bounds2D<T> {
-        Bounds2D {
-            min: p,
-            max: p,
-        }
+        Bounds2D { min: p, max: p }
     }
 
     pub fn from_two_points(p1: cgmath::Point2<T>, p2: cgmath::Point2<T>) -> Bounds2D<T> {
@@ -102,12 +110,14 @@ impl<T: BaseNum> Bounds2D<T> {
 
 impl<T: BaseFloat> Bounds2D<T> {
     pub fn bounding_sphere(&self) -> (cgmath::Point2<T>, T) {
-        let center = cgmath::Point2::<T>::from_vec((self.min.to_vec() + self.max.to_vec()) / T::from(2).unwrap());
+        let center = cgmath::Point2::<T>::from_vec(
+            (self.min.to_vec() + self.max.to_vec()) / T::from(2).unwrap(),
+        );
         let radius = if inside_2d(&center, self) {
-                        center.distance(self.max)
-                    } else {
-                        T::zero()
-                    };
+            center.distance(self.max)
+        } else {
+            T::zero()
+        };
         (center, radius)
     }
 }
@@ -142,21 +152,21 @@ pub type Bounds2Di = Bounds2D<i32>;
 pub fn union_2d_with_point<T: BaseNum>(b: &Bounds2D<T>, p: &Vector2<T>) -> Bounds2D<T> {
     Bounds2D {
         min: cgmath::Point2::new(min(b.min.x, p.x), min(b.min.y, p.y)),
-        max: cgmath::Point2::new(max(b.max.x, p.x), max(b.max.y, p.y))
+        max: cgmath::Point2::new(max(b.max.x, p.x), max(b.max.y, p.y)),
     }
 }
 
 pub fn union_bounds_2d<T: BaseNum>(b1: &Bounds2D<T>, b2: &Bounds2D<T>) -> Bounds2D<T> {
     Bounds2D {
         min: cgmath::Point2::new(min(b1.min.x, b2.min.x), min(b1.min.y, b2.max.x)),
-        max: cgmath::Point2::new(max(b1.max.x, b2.max.x), max(b1.max.y, b2.max.y))
+        max: cgmath::Point2::new(max(b1.max.x, b2.max.x), max(b1.max.y, b2.max.y)),
     }
 }
 
 pub fn intersect_2d<T: BaseNum>(b1: &Bounds2D<T>, b2: &Bounds2D<T>) -> Bounds2D<T> {
     Bounds2D {
         min: cgmath::Point2::new(max(b1.min.x, b2.min.x), max(b1.min.y, b2.max.x)),
-        max: cgmath::Point2::new(min(b1.max.x, b2.max.x), min(b1.max.y, b2.max.y))
+        max: cgmath::Point2::new(min(b1.max.x, b2.max.x), min(b1.max.y, b2.max.y)),
     }
 }
 
@@ -167,13 +177,11 @@ pub fn overlaps_2d<T: BaseNum>(b1: &Bounds2D<T>, b2: &Bounds2D<T>) -> bool {
 }
 
 pub fn inside_2d<T: BaseNum>(p: &cgmath::Point2<T>, b: &Bounds2D<T>) -> bool {
-    p.x >= b.min.x && p.x <= b.max.x &&
-    p.y >= b.min.y && p.y <= b.max.y
+    p.x >= b.min.x && p.x <= b.max.x && p.y >= b.min.y && p.y <= b.max.y
 }
 
 pub fn inside_exclusive_2d<T: BaseNum>(p: &cgmath::Point2<T>, b: &Bounds2D<T>) -> bool {
-    p.x >= b.min.x && p.x < b.max.x &&
-    p.y >= b.min.y && p.y < b.max.y
+    p.x >= b.min.x && p.x < b.max.x && p.y >= b.min.y && p.y < b.max.y
 }
 
 pub fn expand_2d<T: BaseNum, U: BaseNum>(b: &Bounds2D<T>, delta: U) -> Bounds2D<T> {
@@ -196,10 +204,7 @@ impl<T: BaseNum> Bounds3D<T> {
     }
 
     pub fn from_point(p: cgmath::Point3<T>) -> Bounds3D<T> {
-        Bounds3D {
-            min: p,
-            max: p,
-        }
+        Bounds3D { min: p, max: p }
     }
 
     pub fn from_two_points(p1: cgmath::Point3<T>, p2: cgmath::Point3<T>) -> Bounds3D<T> {
@@ -258,12 +263,14 @@ impl<T: BaseNum> Bounds3D<T> {
 
 impl<T: BaseFloat> Bounds3D<T> {
     pub fn bounding_sphere(&self) -> (cgmath::Point3<T>, T) {
-        let center = cgmath::Point3::<T>::from_vec((self.min.to_vec() + self.max.to_vec()) / T::from(2).unwrap());
+        let center = cgmath::Point3::<T>::from_vec(
+            (self.min.to_vec() + self.max.to_vec()) / T::from(2).unwrap(),
+        );
         let radius = if inside_3d(&center, self) {
-                        center.distance(self.max)
-                    } else {
-                        T::zero()
-                    };
+            center.distance(self.max)
+        } else {
+            T::zero()
+        };
         (center, radius)
     }
 }
@@ -294,14 +301,14 @@ impl Bounds3D<f32> {
     }
 
     pub fn intersect_p_precomputed(&self, ray: &Ray, invDir: Vec3, dirIsNeg: &[i32]) -> bool {
-        let mut t_min = (self[  dirIsNeg[0]].x - ray.o.x) * invDir.x;
-        let mut t_max = (self[1-dirIsNeg[0]].x - ray.o.x) * invDir.x;
+        let mut t_min = (self[dirIsNeg[0]].x - ray.o.x) * invDir.x;
+        let mut t_max = (self[1 - dirIsNeg[0]].x - ray.o.x) * invDir.x;
 
-        let ty_min = (self[  dirIsNeg[1]].y - ray.o.y) * invDir.y;
-        let ty_max = (self[1-dirIsNeg[1]].y - ray.o.y) * invDir.y;
+        let ty_min = (self[dirIsNeg[1]].y - ray.o.y) * invDir.y;
+        let ty_max = (self[1 - dirIsNeg[1]].y - ray.o.y) * invDir.y;
 
-        let tz_min = (self[  dirIsNeg[2]].z - ray.o.z) * invDir.z;
-        let tz_max = (self[1-dirIsNeg[2]].z - ray.o.z) * invDir.z;
+        let tz_min = (self[dirIsNeg[2]].z - ray.o.z) * invDir.z;
+        let tz_max = (self[1 - dirIsNeg[2]].z - ray.o.z) * invDir.z;
         // Update t_max and ty_max to ensure robust bounds intersection
         if t_min > ty_max || ty_min > t_max {
             return false;
@@ -358,21 +365,37 @@ pub type Bounds3Df = Bounds3D<f32>;
 pub fn union_3d_with_point<T: BaseNum>(b: &Bounds3D<T>, p: &cgmath::Point3<T>) -> Bounds3D<T> {
     Bounds3D {
         min: cgmath::Point3::new(min(b.min.x, p.x), min(b.min.y, p.y), min(b.min.z, p.z)),
-        max: cgmath::Point3::new(max(b.max.x, p.x), max(b.max.y, p.y), max(b.min.z, p.z))
+        max: cgmath::Point3::new(max(b.max.x, p.x), max(b.max.y, p.y), max(b.min.z, p.z)),
     }
 }
 
 pub fn union_bounds_3d<T: BaseNum>(b1: &Bounds3D<T>, b2: &Bounds3D<T>) -> Bounds3D<T> {
     Bounds3D {
-        min: cgmath::Point3::new(min(b1.min.x, b2.min.x), min(b1.min.y, b2.max.x), min(b1.min.z, b2.max.z)),
-        max: cgmath::Point3::new(max(b1.max.x, b2.max.x), max(b1.max.y, b2.max.y), max(b1.min.z, b2.max.z))
+        min: cgmath::Point3::new(
+            min(b1.min.x, b2.min.x),
+            min(b1.min.y, b2.max.x),
+            min(b1.min.z, b2.max.z),
+        ),
+        max: cgmath::Point3::new(
+            max(b1.max.x, b2.max.x),
+            max(b1.max.y, b2.max.y),
+            max(b1.min.z, b2.max.z),
+        ),
     }
 }
 
 pub fn intersect_3d<T: BaseNum>(b1: &Bounds3D<T>, b2: &Bounds3D<T>) -> Bounds3D<T> {
     Bounds3D {
-        min: cgmath::Point3::new(max(b1.min.x, b2.min.x), max(b1.min.y, b2.max.x), max(b1.min.z, b2.max.z)),
-        max: cgmath::Point3::new(min(b1.max.x, b2.max.x), min(b1.max.y, b2.max.y), min(b1.min.z, b2.max.z))
+        min: cgmath::Point3::new(
+            max(b1.min.x, b2.min.x),
+            max(b1.min.y, b2.max.x),
+            max(b1.min.z, b2.max.z),
+        ),
+        max: cgmath::Point3::new(
+            min(b1.max.x, b2.max.x),
+            min(b1.max.y, b2.max.y),
+            min(b1.min.z, b2.max.z),
+        ),
     }
 }
 
@@ -384,15 +407,21 @@ pub fn overlaps_3d<T: BaseNum>(b1: &Bounds3D<T>, b2: &Bounds3D<T>) -> bool {
 }
 
 pub fn inside_3d<T: BaseNum>(p: &cgmath::Point3<T>, b: &Bounds3D<T>) -> bool {
-    p.x >= b.min.x && p.x <= b.max.x &&
-    p.y >= b.min.y && p.y <= b.max.y &&
-    p.z >= b.min.z && p.z <= b.max.z
+    p.x >= b.min.x
+        && p.x <= b.max.x
+        && p.y >= b.min.y
+        && p.y <= b.max.y
+        && p.z >= b.min.z
+        && p.z <= b.max.z
 }
 
 pub fn inside_exclusive_3d<T: BaseNum>(p: &cgmath::Point3<T>, b: &Bounds3D<T>) -> bool {
-    p.x >= b.min.x && p.x < b.max.x &&
-    p.y >= b.min.y && p.y < b.max.y &&
-    p.z >= b.min.z && p.z < b.max.z
+    p.x >= b.min.x
+        && p.x < b.max.x
+        && p.y >= b.min.y
+        && p.y < b.max.y
+        && p.z >= b.min.z
+        && p.z < b.max.z
 }
 
 pub fn expand_3d<T: BaseNum, U: BaseNum>(b: &Bounds3D<T>, delta: U) -> Bounds3D<T> {
@@ -431,7 +460,7 @@ pub struct Transform {
 
 impl Default for Transform {
     fn default() -> Self {
-        Transform{
+        Transform {
             m: Matrix4::identity(),
             m_inv: Matrix4::identity(),
         }
@@ -440,7 +469,7 @@ impl Default for Transform {
 
 impl From<Matrix4<f32>> for Transform {
     fn from(mat: Matrix4<f32>) -> Transform {
-        Transform{
+        Transform {
             m: mat,
             m_inv: mat.invert().unwrap(),
         }
@@ -453,11 +482,17 @@ impl Transform {
     }
 
     pub fn inverse(&self) -> Transform {
-        Transform{ m: self.m_inv, m_inv: self.m }
+        Transform {
+            m: self.m_inv,
+            m_inv: self.m,
+        }
     }
 
     pub fn transpose(&self) -> Transform {
-        Transform{ m: self.m.transpose(), m_inv: self.m_inv.transpose() }
+        Transform {
+            m: self.m.transpose(),
+            m_inv: self.m_inv.transpose(),
+        }
     }
 
     pub fn has_scale() -> bool {
@@ -477,7 +512,7 @@ impl Transform {
         vec3(
             self.m_inv.x[0] * n.x + self.m_inv.x[1] * n.y + self.m_inv.x[2] * n.z,
             self.m_inv.y[0] * n.x + self.m_inv.y[1] * n.y + self.m_inv.y[2] * n.z,
-            self.m_inv.z[0] * n.x + self.m_inv.z[1] * n.y + self.m_inv.z[2] * n.z
+            self.m_inv.z[0] * n.x + self.m_inv.z[1] * n.y + self.m_inv.z[2] * n.z,
         )
     }
 
@@ -485,24 +520,42 @@ impl Transform {
         let o = self.transform_point(r.o);
         let d = self.transform_vec(r.d);
         // Offset ray origin to edge of error bounds
-        Ray{o, d, ..r}
+        Ray { o, d, ..r }
     }
 
     pub fn transform_bounds(&self, b: &Bounds3Df) -> Bounds3Df {
         let ret = Bounds3Df::from_point(self.transform_point(b.min));
-        let ret = union_3d_with_point(&ret, &self.transform_point(Point3::new(b.max.x, b.min.y, b.min.z)));
-        let ret = union_3d_with_point(&ret, &self.transform_point(Point3::new(b.min.x, b.max.y, b.min.z)));
-        let ret = union_3d_with_point(&ret, &self.transform_point(Point3::new(b.min.x, b.min.y, b.max.z)));
-        let ret = union_3d_with_point(&ret, &self.transform_point(Point3::new(b.min.x, b.max.y, b.max.z)));
-        let ret = union_3d_with_point(&ret, &self.transform_point(Point3::new(b.max.x, b.max.y, b.min.z)));
-        let ret = union_3d_with_point(&ret, &self.transform_point(Point3::new(b.max.x, b.min.y, b.max.z)));
+        let ret = union_3d_with_point(
+            &ret,
+            &self.transform_point(Point3::new(b.max.x, b.min.y, b.min.z)),
+        );
+        let ret = union_3d_with_point(
+            &ret,
+            &self.transform_point(Point3::new(b.min.x, b.max.y, b.min.z)),
+        );
+        let ret = union_3d_with_point(
+            &ret,
+            &self.transform_point(Point3::new(b.min.x, b.min.y, b.max.z)),
+        );
+        let ret = union_3d_with_point(
+            &ret,
+            &self.transform_point(Point3::new(b.min.x, b.max.y, b.max.z)),
+        );
+        let ret = union_3d_with_point(
+            &ret,
+            &self.transform_point(Point3::new(b.max.x, b.max.y, b.min.z)),
+        );
+        let ret = union_3d_with_point(
+            &ret,
+            &self.transform_point(Point3::new(b.max.x, b.min.y, b.max.z)),
+        );
         let ret = union_3d_with_point(&ret, &self.transform_point(b.max));
         ret
     }
 
     pub fn transform_surface_interaction(&self, si: SurfaceInteraction) -> SurfaceInteraction {
         // Transform p and pError
-        let mut ret = SurfaceInteraction{
+        let mut ret = SurfaceInteraction {
             interaction: Interaction {
                 p: si.interaction.p,
                 n: self.transform_normal(si.interaction.n).normalize(),
@@ -514,7 +567,7 @@ impl Transform {
             dpdv: self.transform_vec(si.dpdv),
             dndu: self.transform_vec(si.dndu),
             dndv: self.transform_vec(si.dndv),
-            shading: Shading{
+            shading: Shading {
                 n: self.transform_normal(si.shading.n).normalize(),
                 dpdu: self.transform_vec(si.shading.dpdu),
                 dpdv: self.transform_vec(si.shading.dpdv),
@@ -536,9 +589,9 @@ impl Transform {
 impl std::ops::Mul for Transform {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self {
-        Transform{
+        Transform {
             m: self.m * rhs.m,
-            m_inv: rhs.m_inv * self.m_inv
+            m_inv: rhs.m_inv * self.m_inv,
         }
     }
 }
@@ -546,41 +599,41 @@ impl std::ops::Mul for Transform {
 pub fn translate(delta: Vec3) -> Transform {
     let m = Matrix4::from_translation(delta);
     let m_inv = Matrix4::from_translation(-delta);
-    Transform{ m, m_inv }
+    Transform { m, m_inv }
 }
 
 pub fn scale(x: f32, y: f32, z: f32) -> Transform {
     let m = Matrix4::from_nonuniform_scale(x, y, z);
     let m_inv = Matrix4::from_nonuniform_scale(1.0 / x, 1.0 / y, 1.0 / z);
-    Transform{ m, m_inv }
+    Transform { m, m_inv }
 }
 
 pub fn rotate_x(theta: f32) -> Transform {
     let m = Matrix4::from_angle_x(Deg(theta));
     let m_inv = m.transpose();
-    Transform{ m, m_inv }
+    Transform { m, m_inv }
 }
 
 pub fn rotate_y(theta: f32) -> Transform {
     let m = Matrix4::from_angle_y(Deg(theta));
     let m_inv = m.transpose();
-    Transform{ m, m_inv }
+    Transform { m, m_inv }
 }
 
 pub fn rotate_z(theta: f32) -> Transform {
     let m = Matrix4::from_angle_z(Deg(theta));
     let m_inv = m.transpose();
-    Transform{ m, m_inv }
+    Transform { m, m_inv }
 }
 
 pub fn rotate_axis(theta: f32, axis: Vec3) -> Transform {
     let m = Matrix4::from_axis_angle(axis, Deg(theta));
     let m_inv = m.transpose();
-    Transform{ m, m_inv }
+    Transform { m, m_inv }
 }
 
 pub fn look_at(pos: Point3, look: Point3, up: Vec3) -> Transform {
     let m = Matrix4::look_at(pos, look, up);
     let m_inv = m.invert().unwrap();
-    Transform{ m, m_inv }
+    Transform { m, m_inv }
 }

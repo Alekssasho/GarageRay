@@ -12,6 +12,7 @@ mod lights;
 mod math;
 mod ray;
 mod samplers;
+mod shapes;
 mod spectrum;
 
 fn main() {
