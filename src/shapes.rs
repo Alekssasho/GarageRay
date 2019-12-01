@@ -6,7 +6,7 @@ use crate::core::SurfaceInteraction;
 use crate::math::{Bounds3Df, Transform};
 use crate::ray::Ray;
 
-trait ShapeInterface {
+pub trait ShapeInterface {
     fn object_bound(&self) -> Bounds3Df;
     fn world_bound(&self, shape: &Shape) -> Bounds3Df {
         shape.object_to_world.transform_bounds(&self.object_bound())

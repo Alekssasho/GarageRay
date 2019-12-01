@@ -516,11 +516,11 @@ impl Transform {
         )
     }
 
-    pub fn transform_ray(&self, r: Ray) -> Ray {
+    pub fn transform_ray(&self, r: &Ray) -> Ray {
         let o = self.transform_point(r.o);
         let d = self.transform_vec(r.d);
         // Offset ray origin to edge of error bounds
-        Ray { o, d, ..r }
+        Ray { o, d, ..*r }
     }
 
     pub fn transform_bounds(&self, b: &Bounds3Df) -> Bounds3Df {
@@ -636,4 +636,24 @@ pub fn look_at(pos: Point3, look: Point3, up: Vec3) -> Transform {
     let m = Matrix4::look_at(pos, look, up);
     let m_inv = m.invert().unwrap();
     Transform { m, m_inv }
+}
+
+pub fn quadratic<T: BaseFloat>(a: T, b: T, c: T) -> Option<(T, T)> {
+    let discrim: f64 = b.to_f64().unwrap() * b.to_f64().unwrap() - 4.0 * a.to_f64().unwrap() * c.to_f64().unwrap();
+    if discrim < 0.0 {
+        return None;
+    }
+    let root_discrim = discrim.sqrt();
+    let q: f64 = if b < T::from(0.0).unwrap() {
+        -0.5 * (b.to_f64().unwrap() - root_discrim)
+    } else {
+        -0.5 * (b.to_f64().unwrap() + root_discrim)
+    };
+    let t0 = q / a.to_f64().unwrap();
+    let t1 = c.to_f64().unwrap() / q;
+    if t0 > t1 {
+        Some((T::from(t1).unwrap(), T::from(t0).unwrap()))
+    } else {
+        Some((T::from(t0).unwrap(), T::from(t1).unwrap()))
+    }
 }

@@ -12,20 +12,32 @@ pub struct Sphere {
 
 impl ShapeInterface for Sphere {
     fn object_bound(&self) -> Bounds3Df {
-        Bounds3Df::default()
+        Bounds3Df{
+            min: Point3::new(-self.radius, self.radius, self.z_min),
+            max: Point3::new(-self.radius, self.radius, self.z_max)
+        }
     }
 
     fn intersect(
         &self,
         shape: &Shape,
-        ray: &Ray,
+        r: &Ray,
         test_alpha_texture: bool,
     ) -> (bool, f32, SurfaceInteraction) {
-        (
-            false,
-            ray.t_max.get(),
-            SurfaceInteraction::delete_me_default(),
-        )
+        let phi: f32;
+        let p_hit: Point3;
+        let ray = shape.world_to_object.transform_ray(r); // TODO: this should be with floating point errors
+        //TODO: use EFloat instead of floats (page 135)
+        let a = ray.d.x * ray.d.x + ray.d.y * ray.d.y + ray.d.z * ray.d.z;
+        let b = 2.0 * (ray.d.x * ray.o.x + ray.d.y * ray.o.y + ray.d.z * ray.o.z);
+        let c = ray.o.x * ray.o.x + ray.o.y * ray.o.y + ray.o.z * ray.o.z - self.radius * self.radius;
+
+        let (t0, t1) = match quadratic(a, b, c) {
+            None => return (false, 0.0, SurfaceInteraction::delete_me_default()),
+            Some((x, y)) => (x, y)
+        };
+
+
     }
 
     fn area(&self) -> f32 {
