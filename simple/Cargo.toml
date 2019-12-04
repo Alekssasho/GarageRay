@@ -6,3 +6,4 @@ edition = "2018"
 
 [dependencies]
 cgmath = "0.17.0"
+image = "0.22.3"
