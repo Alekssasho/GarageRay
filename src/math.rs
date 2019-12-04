@@ -516,11 +516,12 @@ impl Transform {
         )
     }
 
-    pub fn transform_ray(&self, r: &Ray) -> Ray {
+    pub fn transform_ray<'a>(&self, r: &'a Ray) -> Ray<'a> {
         let o = self.transform_point(r.o);
         let d = self.transform_vec(r.d);
+        let t_max = std::cell::Cell::new(r.t_max.get());
         // Offset ray origin to edge of error bounds
-        Ray { o, d, ..*r }
+        Ray { o, d, t_max, ..*r }
     }
 
     pub fn transform_bounds(&self, b: &Bounds3Df) -> Bounds3Df {
@@ -553,7 +554,7 @@ impl Transform {
         ret
     }
 
-    pub fn transform_surface_interaction(&self, si: SurfaceInteraction) -> SurfaceInteraction {
+    pub fn transform_surface_interaction<'a>(&self, si: SurfaceInteraction<'a>) -> SurfaceInteraction<'a> {
         // Transform p and pError
         let mut ret = SurfaceInteraction {
             interaction: Interaction {

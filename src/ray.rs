@@ -1,17 +1,18 @@
 use crate::core::Medium;
 use crate::math::*;
 use std::cell::Cell;
+use std::rc::Rc;
 
-pub struct Ray {
+pub struct Ray<'a> {
     pub o: Point3,
     pub d: Vec3,
     pub t_max: Cell<f32>, // This is mutable in original C++ code so we need Cell to mutate it
     pub time: f32,
-    pub medium: Option<Box<Medium>>,
+    pub medium: Option<&'a Medium>,
 }
 
-impl Ray {
-    pub fn new(o: Point3, d: Vec3) -> Ray {
+impl<'a> Ray<'a> {
+    pub fn new(o: Point3, d: Vec3) -> Ray<'a> {
         Ray {
             o,
             d,
@@ -26,8 +27,8 @@ impl Ray {
     }
 }
 
-pub struct RayDifferential {
-    pub ray: Ray,
+pub struct RayDifferential<'a> {
+    pub ray: Ray<'a>,
     pub hasDifferentials: bool,
     pub rxOrigin: Point3,
     pub ryOrigin: Point3,
@@ -35,7 +36,7 @@ pub struct RayDifferential {
     pub ryDirection: Vec3,
 }
 
-impl RayDifferential {
+impl<'a> RayDifferential<'a> {
     // TODO: maybe this is better to not modify self but return new self
     pub fn scale_differentials(&mut self, scalar: f32) -> () {
         self.rxOrigin = self.ray.o + (self.rxOrigin - self.ray.o) * scalar;
@@ -44,7 +45,7 @@ impl RayDifferential {
         self.ryDirection = self.ray.d + (self.ryDirection - self.ray.d) * scalar;
     }
 
-    pub fn new(o: Point3, d: Vec3) -> RayDifferential {
+    pub fn new(o: Point3, d: Vec3) -> RayDifferential<'a> {
         RayDifferential {
             ray: Ray::new(o, d),
             hasDifferentials: false,
@@ -56,7 +57,7 @@ impl RayDifferential {
     }
 }
 
-impl From<Ray> for RayDifferential {
+impl<'a> From<Ray<'a>> for RayDifferential<'a> {
     fn from(ray: Ray) -> RayDifferential {
         RayDifferential {
             ray,

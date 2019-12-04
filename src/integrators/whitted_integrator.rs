@@ -25,14 +25,14 @@ impl SampleIntegratorInterface for WhittedIntegrator {
         depth: i32,
     ) -> Spectrum {
         let mut L = Spectrum::new();
-        let (isect, has_intersected) = scene.intersect(&ray.ray);
-        if !has_intersected {
+        let maybe_isect = scene.intersect(&ray.ray);
+        if maybe_isect.is_none() {
             for light in scene.lights.iter() {
                 L += light.light_emission(ray);
             }
             return L;
         }
-
+        let isect = maybe_isect.unwrap();
         let n = isect.shading.n;
         let wo = isect.interaction.wo;
         isect.compute_scattering_functions(ray);

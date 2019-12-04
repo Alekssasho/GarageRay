@@ -27,19 +27,19 @@ pub struct Shading {
     pub dndv: Normal3f,
 }
 
-pub struct SurfaceInteraction {
+pub struct SurfaceInteraction<'a> {
     pub interaction: Interaction,
     pub uv: Point2,
     pub dpdu: Vec3,
     pub dpdv: Vec3,
     pub dndu: Normal3f,
     pub dndv: Normal3f,
-    pub shape: Box<Shape>, // Possible better to be a reference
+    pub shape: &'a Shape,
     pub shading: Shading,
     pub bsdf: BSDF,
 }
 
-impl SurfaceInteraction {
+impl<'a> SurfaceInteraction<'a> {
     pub fn new(
         p: Point3,
         p_error: Vec3,
@@ -50,7 +50,7 @@ impl SurfaceInteraction {
         dndu: Normal3f,
         dndv: Normal3f,
         time: f32,
-        shape: Box<Shape>,
+        shape: &Shape,
     ) -> SurfaceInteraction {
         let mut n = dpdu.cross(dpdv).normalize();
         // null check add
@@ -78,33 +78,6 @@ impl SurfaceInteraction {
                 dpdv,
                 dndu,
                 dndv,
-            },
-            bsdf: BSDF {},
-        }
-    }
-
-    pub fn delete_me_default() -> SurfaceInteraction {
-        SurfaceInteraction {
-            interaction: Interaction {
-                p: Point3::new(0.0, 0.0, 0.0),
-                n: vec3(0.0, 0.0, 0.0),
-                p_error: vec3(0.0, 0.0, 0.0),
-                wo: vec3(0.0, 0.0, 0.0),
-                time: 0.0,
-                medium_interface: MediumInterface {},
-            },
-            uv: Point2::new(0.0, 0.0),
-            dpdu: vec3(0.0, 0.0, 0.0),
-            dpdv: vec3(0.0, 0.0, 0.0),
-            dndu: vec3(0.0, 0.0, 0.0),
-            dndv: vec3(0.0, 0.0, 0.0),
-            shape: Box::new(Sphere::unit()),
-            shading: Shading {
-                n: vec3(0.0, 0.0, 0.0),
-                dpdu: vec3(0.0, 0.0, 0.0),
-                dpdv: vec3(0.0, 0.0, 0.0),
-                dndu: vec3(0.0, 0.0, 0.0),
-                dndv: vec3(0.0, 0.0, 0.0),
             },
             bsdf: BSDF {},
         }

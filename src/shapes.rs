@@ -11,15 +11,15 @@ pub trait ShapeInterface {
     fn world_bound(&self, shape: &Shape) -> Bounds3Df {
         shape.object_to_world.transform_bounds(&self.object_bound())
     }
-    fn intersect(
+    fn intersect<'a>(
         &self,
-        shape: &Shape,
+        shape: &'a Shape,
         ray: &Ray,
         test_alpha_texture: bool,
-    ) -> (bool, f32, SurfaceInteraction);
+    ) -> Option<(f32, SurfaceInteraction<'a>)>;
 
     fn intersect_p(&self, shape: &Shape, ray: &Ray, test_alpha_texture: bool) -> bool {
-        self.intersect(shape, ray, test_alpha_texture).0
+        self.intersect(shape, ray, test_alpha_texture).is_some()
     }
 
     fn area(&self) -> f32;
@@ -57,7 +57,7 @@ impl Shape {
         self.shape_impl.world_bound(self)
     }
 
-    fn intersect(&self, ray: &Ray, test_alpha_texture: bool) -> (bool, f32, SurfaceInteraction) {
+    fn intersect(&self, ray: &Ray, test_alpha_texture: bool) -> Option<(f32, SurfaceInteraction)> {
         self.shape_impl.intersect(self, ray, test_alpha_texture)
     }
 

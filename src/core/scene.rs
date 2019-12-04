@@ -26,8 +26,8 @@ impl Scene {
         }
     }
 
-    pub fn intersect(&self, ray: &Ray) -> (SurfaceInteraction, bool) {
-        (SurfaceInteraction::delete_me_default(), true)
+    pub fn intersect(&self, ray: &Ray) -> Option<SurfaceInteraction> {
+        None // TODO: implement me
     }
     // IntersectP 24
 }
