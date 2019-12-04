@@ -20,4 +20,5 @@ fn main() {
     // Init function
 
     // Cleanup function
+    println!("Hello World PBRT");
 }
