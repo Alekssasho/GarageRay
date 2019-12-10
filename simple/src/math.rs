@@ -4,7 +4,5 @@
 pub type Vec3 = cgmath::Vector3<f32>;
 
 pub use cgmath::dot;
+pub use cgmath::prelude::*;
 pub use cgmath::vec3;
-pub use cgmath::EuclideanSpace;
-pub use cgmath::InnerSpace;
-pub use cgmath::VectorSpace;
