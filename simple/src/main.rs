@@ -1,48 +1,27 @@
 mod camera;
 mod hitable;
+mod material;
 mod math;
+mod random;
 mod ray;
 
 use camera::*;
 use hitable::*;
+use material::*;
 use math::*;
 use ray::*;
 
-use rand::distributions::{Distribution, Uniform};
+use rand::distributions::Distribution;
 
-fn random_in_unit_sphere<R: rand::Rng>(rng: &mut R, uniform: &Uniform<f32>) -> Vec3 {
-    let mut rng_itr = uniform.sample_iter(rng);
-    loop {
-        let p = 2.0
-            * vec3(
-                rng_itr.next().unwrap(),
-                rng_itr.next().unwrap(),
-                rng_itr.next().unwrap(),
-            );
-        if dot(p, p) < 1.0 {
-            break p;
+fn color(ray: &Ray, world: &dyn Hitable, depth: i32) -> Vec3 {
+    if let Some(rec) = world.hit(ray, 0.001, std::f32::MAX) {
+        // TODO: this is potentially wrong
+        match rec.material.unwrap().scatter(ray, &rec) {
+            Some((attenuation, scattered)) if depth < 50 => {
+                color(&scattered, world, depth + 1).mul_element_wise(attenuation)
+            }
+            _ => vec3(0.0, 0.0, 0.0),
         }
-    }
-}
-
-fn color<R: rand::Rng>(
-    ray: &Ray,
-    world: &dyn Hitable,
-    rng: &mut R,
-    uniform: &Uniform<f32>,
-) -> Vec3 {
-    let mut rec = HitRecord::default();
-    if world.hit(ray, 0.001, std::f32::MAX, &mut rec) {
-        let target = rec.p + rec.normal + random_in_unit_sphere(rng, uniform);
-        0.5 * color(
-            &Ray {
-                origin: rec.p,
-                direction: target - rec.p,
-            },
-            world,
-            rng,
-            uniform,
-        )
     } else {
         let unit_direction = ray.direction.normalize();
         let t = 0.5 * unit_direction.y + 1.0;
@@ -55,17 +34,38 @@ fn main() {
     let height = 100;
     let samples = 100;
 
-    let list: Vec<Box<dyn Hitable>> = vec![
+    let world: Vec<Box<dyn Hitable>> = vec![
         Box::new(Sphere {
             center: vec3(0.0, 0.0, -1.0),
             radius: 0.5,
+            material: Box::new(Lambertian {
+                albedo: vec3(0.8, 0.3, 0.3),
+            }),
         }),
         Box::new(Sphere {
             center: vec3(0.0, -100.5, -1.0),
             radius: 100.0,
+            material: Box::new(Lambertian {
+                albedo: vec3(0.8, 0.8, 0.0),
+            }),
+        }),
+        Box::new(Sphere {
+            center: vec3(1.0, 0.0, -1.0),
+            radius: 0.5,
+            material: Box::new(Metal {
+                albedo: vec3(0.8, 0.6, 0.2),
+                fuzz: 0.3,
+            }),
+        }),
+        Box::new(Sphere {
+            center: vec3(-1.0, 0.0, -1.0),
+            radius: 0.5,
+            material: Box::new(Metal {
+                albedo: vec3(0.8, 0.8, 0.8),
+                fuzz: 1.0,
+            }),
         }),
     ];
-    let world = HitableList { list };
     let camera = Camera::new();
 
     let mut rng = rand::thread_rng();
@@ -79,7 +79,7 @@ fn main() {
                 let v = ((height - y - 1) as f32 + uniform_distribution.sample(&mut rng))
                     / height as f32;
                 let ray = camera.get_ray(u, v);
-                color(&ray, &world, &mut rng, &uniform_distribution)
+                color(&ray, &world, 0)
             })
             .sum::<Vec3>()
             / samples as f32;

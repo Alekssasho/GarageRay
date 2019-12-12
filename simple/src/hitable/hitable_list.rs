@@ -1,23 +1,17 @@
 use crate::hitable::{HitRecord, Hitable};
 use crate::ray::Ray;
 
-pub struct HitableList {
-    pub list: Vec<Box<dyn Hitable>>,
-}
-
-impl Hitable for HitableList {
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, rec: &mut HitRecord) -> bool {
-        let mut temp_rec = HitRecord::default();
-        let mut hit_anything = false;
+impl Hitable for Vec<Box<dyn Hitable>> {
+    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
+        let mut hit: Option<HitRecord> = None;
         let mut closest_so_far = t_max;
-        for hitable in &self.list {
-            if hitable.hit(ray, t_min, closest_so_far, &mut temp_rec) {
-                hit_anything = true;
+        for hitable in self {
+            if let Some(temp_rec) = hitable.hit(ray, t_min, closest_so_far) {
                 closest_so_far = temp_rec.t;
-                *rec = temp_rec;
+                hit = Some(temp_rec);
             }
         }
 
-        hit_anything
+        hit
     }
 }
