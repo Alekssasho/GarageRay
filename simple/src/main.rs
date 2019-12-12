@@ -8,12 +8,41 @@ use hitable::*;
 use math::*;
 use ray::*;
 
-use rand::distributions::Distribution;
+use rand::distributions::{Distribution, Uniform};
 
-fn color(ray: &Ray, world: &dyn Hitable) -> Vec3 {
+fn random_in_unit_sphere<R: rand::Rng>(rng: &mut R, uniform: &Uniform<f32>) -> Vec3 {
+    let mut rng_itr = uniform.sample_iter(rng);
+    loop {
+        let p = 2.0
+            * vec3(
+                rng_itr.next().unwrap(),
+                rng_itr.next().unwrap(),
+                rng_itr.next().unwrap(),
+            );
+        if dot(p, p) < 1.0 {
+            break p;
+        }
+    }
+}
+
+fn color<R: rand::Rng>(
+    ray: &Ray,
+    world: &dyn Hitable,
+    rng: &mut R,
+    uniform: &Uniform<f32>,
+) -> Vec3 {
     let mut rec = HitRecord::default();
-    if world.hit(ray, 0.0, std::f32::MAX, &mut rec) {
-        0.5 * (vec3(1.0, 1.0, 1.0) + rec.normal)
+    if world.hit(ray, 0.001, std::f32::MAX, &mut rec) {
+        let target = rec.p + rec.normal + random_in_unit_sphere(rng, uniform);
+        0.5 * color(
+            &Ray {
+                origin: rec.p,
+                direction: target - rec.p,
+            },
+            world,
+            rng,
+            uniform,
+        )
     } else {
         let unit_direction = ray.direction.normalize();
         let t = 0.5 * unit_direction.y + 1.0;
@@ -50,14 +79,14 @@ fn main() {
                 let v = ((height - y - 1) as f32 + uniform_distribution.sample(&mut rng))
                     / height as f32;
                 let ray = camera.get_ray(u, v);
-                color(&ray, &world)
+                color(&ray, &world, &mut rng, &uniform_distribution)
             })
             .sum::<Vec3>()
             / samples as f32;
 
-        let ir = (255.99 * color.x) as u8;
-        let ig = (255.99 * color.y) as u8;
-        let ib = (255.99 * color.z) as u8;
+        let ir = (255.99 * color.x.sqrt()) as u8;
+        let ig = (255.99 * color.y.sqrt()) as u8;
+        let ib = (255.99 * color.z.sqrt()) as u8;
         *pixel = image::Rgb([ir, ig, ib]);
     }
 
