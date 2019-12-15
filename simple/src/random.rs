@@ -15,3 +15,8 @@ pub fn random_in_unit_sphere() -> Vec3 {
         }
     }
 }
+
+pub fn random_float() -> f32 {
+    let mut rng = rand::thread_rng();
+    rng.gen_range(0.0 as f32, 1.0)
+}

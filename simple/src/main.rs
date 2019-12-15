@@ -39,7 +39,7 @@ fn main() {
             center: vec3(0.0, 0.0, -1.0),
             radius: 0.5,
             material: Box::new(Lambertian {
-                albedo: vec3(0.8, 0.3, 0.3),
+                albedo: vec3(0.1, 0.2, 0.5),
             }),
         }),
         Box::new(Sphere {
@@ -54,16 +54,18 @@ fn main() {
             radius: 0.5,
             material: Box::new(Metal {
                 albedo: vec3(0.8, 0.6, 0.2),
-                fuzz: 0.3,
+                fuzz: 0.0,
             }),
         }),
         Box::new(Sphere {
             center: vec3(-1.0, 0.0, -1.0),
             radius: 0.5,
-            material: Box::new(Metal {
-                albedo: vec3(0.8, 0.8, 0.8),
-                fuzz: 1.0,
-            }),
+            material: Box::new(Dielectric { ref_index: 1.5 }),
+        }),
+        Box::new(Sphere {
+            center: vec3(-1.0, 0.0, -1.0),
+            radius: -0.45,
+            material: Box::new(Dielectric { ref_index: 1.5 }),
         }),
     ];
     let camera = Camera::new();

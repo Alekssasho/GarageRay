@@ -1,15 +1,15 @@
 use crate::hitable::HitRecord;
 use crate::material::Material;
 use crate::math::*;
-use crate::ray::Ray;
 use crate::random::random_in_unit_sphere;
+use crate::ray::Ray;
 
 pub struct Metal {
     pub albedo: Vec3,
     pub fuzz: f32,
 }
 
-fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
+pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
     v - 2.0 * dot(*v, *n) * n
 }
 
