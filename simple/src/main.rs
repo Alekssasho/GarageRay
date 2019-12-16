@@ -68,12 +68,16 @@ fn main() {
             material: Box::new(Dielectric { ref_index: 1.5 }),
         }),
     ];
+    let look_from = vec3(3.0, 3.0, 2.0);
+    let look_at = vec3(0.0, 0.0, -1.0);
     let camera = Camera::new(
-        vec3(-2.0, 2.0, 1.0),
-        vec3(0.0, 0.0, -1.0),
+        look_from,
+        look_at,
         vec3(0.0, 1.0, 0.0),
-        30.0,
+        20.0,
         width as f32 / height as f32,
+        2.0,
+        (look_from - look_at).magnitude()
     );
 
     let mut rng = rand::thread_rng();
