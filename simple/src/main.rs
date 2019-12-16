@@ -68,7 +68,13 @@ fn main() {
             material: Box::new(Dielectric { ref_index: 1.5 }),
         }),
     ];
-    let camera = Camera::new();
+    let camera = Camera::new(
+        vec3(-2.0, 2.0, 1.0),
+        vec3(0.0, 0.0, -1.0),
+        vec3(0.0, 1.0, 0.0),
+        30.0,
+        width as f32 / height as f32,
+    );
 
     let mut rng = rand::thread_rng();
     let uniform_distribution = rand::distributions::Uniform::new(0.0, 1.0);
