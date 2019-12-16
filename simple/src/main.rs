@@ -9,6 +9,7 @@ use camera::*;
 use hitable::*;
 use material::*;
 use math::*;
+use random::random_float;
 use ray::*;
 
 use rand::distributions::Distribution;
@@ -29,55 +30,98 @@ fn color(ray: &Ray, world: &dyn Hitable, depth: i32) -> Vec3 {
     }
 }
 
-fn main() {
-    let width = 200;
-    let height = 100;
-    let samples = 100;
+fn random_scene() -> Vec<Box<dyn Hitable>> {
+    let n = 500;
+    let mut list: Vec<Box<dyn Hitable>> = Vec::with_capacity(n + 1);
+    list.push(Box::new(Sphere {
+        center: vec3(0.0, -1000.0, 0.0),
+        radius: 1000.0,
+        material: Box::new(Lambertian {
+            albedo: vec3(0.5, 0.5, 0.5),
+        }),
+    }));
+    for a in -11..11 {
+        for b in -11..11 {
+            let choose_mat = random_float();
+            let center = vec3(
+                a as f32 + 0.9 * random_float(),
+                0.2,
+                b as f32 + 0.9 * random_float(),
+            );
+            if (center - vec3(4.0, 0.2, 0.0)).magnitude() > 0.9 {
+                match choose_mat {
+                    x if x < 0.8 => list.push(Box::new(Sphere {
+                        center,
+                        radius: 0.2,
+                        material: Box::new(Lambertian {
+                            albedo: vec3(
+                                random_float() * random_float(),
+                                random_float() * random_float(),
+                                random_float() * random_float(),
+                            ),
+                        }),
+                    })),
+                    x if x < 0.95 => list.push(Box::new(Sphere {
+                        center,
+                        radius: 0.2,
+                        material: Box::new(Metal {
+                            albedo: vec3(
+                                0.5 * (1.0 + random_float()),
+                                0.5 * (1.0 + random_float()),
+                                0.5 * (1.0 + random_float()),
+                            ),
+                            fuzz: 0.5 * random_float(),
+                        }),
+                    })),
+                    _ => list.push(Box::new(Sphere {
+                        center,
+                        radius: 0.2,
+                        material: Box::new(Dielectric { ref_index: 1.5 }),
+                    })),
+                }
+            }
+        }
+    }
 
-    let world: Vec<Box<dyn Hitable>> = vec![
-        Box::new(Sphere {
-            center: vec3(0.0, 0.0, -1.0),
-            radius: 0.5,
-            material: Box::new(Lambertian {
-                albedo: vec3(0.1, 0.2, 0.5),
-            }),
+    list.push(Box::new(Sphere {
+        center: vec3(0.0, 1.0, 0.0),
+        radius: 1.0,
+        material: Box::new(Dielectric { ref_index: 1.5 }),
+    }));
+    list.push(Box::new(Sphere {
+        center: vec3(-4.0, 1.0, 0.0),
+        radius: 1.0,
+        material: Box::new(Lambertian {
+            albedo: vec3(0.4, 0.2, 0.1),
         }),
-        Box::new(Sphere {
-            center: vec3(0.0, -100.5, -1.0),
-            radius: 100.0,
-            material: Box::new(Lambertian {
-                albedo: vec3(0.8, 0.8, 0.0),
-            }),
+    }));
+    list.push(Box::new(Sphere {
+        center: vec3(4.0, 1.0, 0.0),
+        radius: 1.0,
+        material: Box::new(Metal {
+            albedo: vec3(0.7, 0.6, 0.5),
+            fuzz: 0.0,
         }),
-        Box::new(Sphere {
-            center: vec3(1.0, 0.0, -1.0),
-            radius: 0.5,
-            material: Box::new(Metal {
-                albedo: vec3(0.8, 0.6, 0.2),
-                fuzz: 0.0,
-            }),
-        }),
-        Box::new(Sphere {
-            center: vec3(-1.0, 0.0, -1.0),
-            radius: 0.5,
-            material: Box::new(Dielectric { ref_index: 1.5 }),
-        }),
-        Box::new(Sphere {
-            center: vec3(-1.0, 0.0, -1.0),
-            radius: -0.45,
-            material: Box::new(Dielectric { ref_index: 1.5 }),
-        }),
-    ];
-    let look_from = vec3(3.0, 3.0, 2.0);
-    let look_at = vec3(0.0, 0.0, -1.0);
+    }));
+    list
+}
+
+fn main() {
+    let width = 1200;
+    let height = 800;
+    let samples = 10;
+
+    let world = random_scene();
+    let look_from = vec3(13.0, 2.0, 3.0);
+    let look_at = vec3(0.0, 0.0, 0.0);
     let camera = Camera::new(
         look_from,
         look_at,
         vec3(0.0, 1.0, 0.0),
         20.0,
         width as f32 / height as f32,
-        2.0,
-        (look_from - look_at).magnitude()
+        0.1,
+        10.0,
     );
 
     let mut rng = rand::thread_rng();
