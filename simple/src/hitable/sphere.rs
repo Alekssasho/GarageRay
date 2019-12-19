@@ -53,7 +53,8 @@ pub struct MovingSphere {
 
 impl MovingSphere {
     fn center(&self, time: f32) -> Vec3 {
-        self.center0 + ((time - self.time0) / (self.time1 - self.time0)) * (self.center1 - self.center0)
+        self.center0
+            + ((time - self.time0) / (self.time1 - self.time0)) * (self.center1 - self.center0)
     }
 }
 

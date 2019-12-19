@@ -126,7 +126,7 @@ fn main() {
         0.0,
         10.0,
         0.0,
-        1.0
+        1.0,
     );
 
     let mut rng = rand::thread_rng();
