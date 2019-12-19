@@ -2,6 +2,7 @@ pub mod hitable_list;
 pub mod sphere;
 
 pub use sphere::Sphere;
+pub use sphere::MovingSphere;
 
 use crate::material::Material;
 use crate::math::{vec3, Vec3};

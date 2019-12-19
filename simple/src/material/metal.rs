@@ -19,6 +19,7 @@ impl Material for Metal {
         let scattered = Ray {
             origin: rec.p,
             direction: reflected + self.fuzz * random_in_unit_sphere(),
+            ..*ray
         };
         if dot(scattered.direction, rec.normal) > 0.0 {
             Some((self.albedo, scattered))

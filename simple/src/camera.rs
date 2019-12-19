@@ -11,6 +11,8 @@ pub struct Camera {
     v: Vec3,
     _w: Vec3,
     lens_radius: f32,
+    time0: f32,
+    time1: f32,
 }
 
 fn random_in_unit_disk() -> Vec3 {
@@ -31,6 +33,8 @@ impl Camera {
         aspect: f32,
         aperture: f32,
         focus_dist: f32,
+        time0: f32,
+        time1: f32,
     ) -> Self {
         let lens_radius = aperture / 2.0;
         let theta = vertical_fov * std::f32::consts::PI / 180.0;
@@ -51,17 +55,21 @@ impl Camera {
             v,
             _w: w,
             lens_radius,
+            time0,
+            time1
         }
     }
 
     pub fn get_ray(&self, s: f32, t: f32) -> Ray {
         let rd = self.lens_radius * random_in_unit_disk();
         let offset = self.u * rd.x + self.v * rd.y;
+        let time = self.time0 + random_float() * (self.time1 - self.time0);
         Ray {
             origin: self.origin + offset,
             direction: self.lower_left_corner + s * self.horizontal + t * self.vertical
                 - self.origin
                 - offset,
+            time,
         }
     }
 }

@@ -56,6 +56,7 @@ impl Material for Dielectric {
                 Ray {
                     origin: rec.p,
                     direction: reflected,
+                    ..*ray
                 },
             ))
         } else {
@@ -64,6 +65,7 @@ impl Material for Dielectric {
                 Ray {
                     origin: rec.p,
                     direction: refracted.unwrap(),
+                    ..*ray
                 },
             ))
         }

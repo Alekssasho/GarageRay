@@ -50,8 +50,11 @@ fn random_scene() -> Vec<Box<dyn Hitable>> {
             );
             if (center - vec3(4.0, 0.2, 0.0)).magnitude() > 0.9 {
                 match choose_mat {
-                    x if x < 0.8 => list.push(Box::new(Sphere {
-                        center,
+                    x if x < 0.8 => list.push(Box::new(MovingSphere {
+                        center0: center,
+                        center1: center + vec3(0.0, 0.5 * random_float(), 0.0),
+                        time0: 0.0,
+                        time1: 1.0,
                         radius: 0.2,
                         material: Box::new(Lambertian {
                             albedo: vec3(
@@ -120,8 +123,10 @@ fn main() {
         vec3(0.0, 1.0, 0.0),
         20.0,
         width as f32 / height as f32,
-        0.1,
+        0.0,
         10.0,
+        0.0,
+        1.0
     );
 
     let mut rng = rand::thread_rng();
