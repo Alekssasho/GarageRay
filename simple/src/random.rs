@@ -20,3 +20,8 @@ pub fn random_float() -> f32 {
     let mut rng = rand::thread_rng();
     rng.gen_range(0.0_f32, 1.0)
 }
+
+pub fn random_int(start: usize, end: usize) -> usize {
+    let mut rng = rand::thread_rng();
+    rng.gen_range(start, end)
+}

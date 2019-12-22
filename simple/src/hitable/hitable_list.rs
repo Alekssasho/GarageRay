@@ -1,4 +1,4 @@
-use crate::hitable::{HitRecord, Hitable};
+use crate::hitable::{surrounding_box, HitRecord, Hitable, AABB};
 use crate::ray::Ray;
 
 impl Hitable for Vec<Box<dyn Hitable>> {
@@ -13,5 +13,24 @@ impl Hitable for Vec<Box<dyn Hitable>> {
         }
 
         hit
+    }
+
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+        if self.len() < 1 {
+            return None;
+        }
+        let mut result = if let Some(aabb) = self.first().unwrap().bounding_box(t0, t1) {
+            aabb
+        } else {
+            return None;
+        };
+        for hitable in &self[1..] {
+            if let Some(aabb) = hitable.bounding_box(t0, t1) {
+                result = surrounding_box(aabb, result);
+            } else {
+                return None;
+            }
+        }
+        Some(result)
     }
 }

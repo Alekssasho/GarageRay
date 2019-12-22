@@ -110,11 +110,13 @@ fn random_scene() -> Vec<Box<dyn Hitable>> {
 }
 
 fn main() {
+    let now = std::time::Instant::now();
     let width = 1200;
     let height = 800;
     let samples = 10;
 
     let world = random_scene();
+    let accelerated_world = BVHNode::build(world, 0.0, 1.0);
     let look_from = vec3(13.0, 2.0, 3.0);
     let look_at = vec3(0.0, 0.0, 0.0);
     let camera = Camera::new(
@@ -140,7 +142,7 @@ fn main() {
                 let v = ((height - y - 1) as f32 + uniform_distribution.sample(&mut rng))
                     / height as f32;
                 let ray = camera.get_ray(u, v);
-                color(&ray, &world, 0)
+                color(&ray, &accelerated_world, 0)
             })
             .sum::<Vec3>()
             / samples as f32;
@@ -152,4 +154,5 @@ fn main() {
     }
 
     image.save("output.bmp").unwrap();
+    println!("Render took {} seconds", now.elapsed().as_secs());
 }

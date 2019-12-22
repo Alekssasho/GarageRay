@@ -19,8 +19,8 @@ use cgmath::Transform as Tr;
 use cgmath::*;
 use std::ops::Index;
 
-pub use cgmath::{Deg, Rad};
 pub use cgmath::InnerSpace;
+pub use cgmath::{Deg, Rad};
 pub use num_traits::identities::Zero; // needed for vector is_zero method // needed for normalize
 
 use crate::core::{Interaction, Shading, SurfaceInteraction};
@@ -554,7 +554,10 @@ impl Transform {
         ret
     }
 
-    pub fn transform_surface_interaction<'a>(&self, si: SurfaceInteraction<'a>) -> SurfaceInteraction<'a> {
+    pub fn transform_surface_interaction<'a>(
+        &self,
+        si: SurfaceInteraction<'a>,
+    ) -> SurfaceInteraction<'a> {
         // Transform p and pError
         let mut ret = SurfaceInteraction {
             interaction: Interaction {
@@ -640,7 +643,8 @@ pub fn look_at(pos: Point3, look: Point3, up: Vec3) -> Transform {
 }
 
 pub fn quadratic<T: BaseFloat>(a: T, b: T, c: T) -> Option<(T, T)> {
-    let discrim: f64 = b.to_f64().unwrap() * b.to_f64().unwrap() - 4.0 * a.to_f64().unwrap() * c.to_f64().unwrap();
+    let discrim: f64 =
+        b.to_f64().unwrap() * b.to_f64().unwrap() - 4.0 * a.to_f64().unwrap() * c.to_f64().unwrap();
     if discrim < 0.0 {
         return None;
     }

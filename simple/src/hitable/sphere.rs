@@ -1,4 +1,4 @@
-use crate::hitable::{HitRecord, Hitable};
+use crate::hitable::{surrounding_box, HitRecord, Hitable, AABB};
 use crate::material::Material;
 use crate::math::*;
 use crate::ray::Ray;
@@ -39,6 +39,13 @@ impl Hitable for Sphere {
             }
         }
         None
+    }
+
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
+        Some(AABB {
+            min: self.center - vec3(self.radius, self.radius, self.radius),
+            max: self.center + vec3(self.radius, self.radius, self.radius),
+        })
     }
 }
 
@@ -88,5 +95,19 @@ impl Hitable for MovingSphere {
             }
         }
         None
+    }
+
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+        let box0 = AABB {
+            min: self.center(t0) - vec3(self.radius, self.radius, self.radius),
+            max: self.center(t0) + vec3(self.radius, self.radius, self.radius),
+        };
+
+        let box1 = AABB {
+            min: self.center(t1) - vec3(self.radius, self.radius, self.radius),
+            max: self.center(t1) + vec3(self.radius, self.radius, self.radius),
+        };
+
+        Some(surrounding_box(box0, box1))
     }
 }
