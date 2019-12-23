@@ -4,6 +4,7 @@ mod material;
 mod math;
 mod random;
 mod ray;
+mod texture;
 
 use camera::*;
 use hitable::*;
@@ -11,6 +12,7 @@ use material::*;
 use math::*;
 use random::random_float;
 use ray::*;
+use texture::*;
 
 use rand::distributions::Distribution;
 
@@ -37,7 +39,10 @@ fn random_scene() -> Vec<Box<dyn Hitable>> {
         center: vec3(0.0, -1000.0, 0.0),
         radius: 1000.0,
         material: Box::new(Lambertian {
-            albedo: vec3(0.5, 0.5, 0.5),
+            albedo: Box::new(CheckerTexture {
+                even: Box::new(ConstantTexture(vec3(0.2, 0.3, 0.1))),
+                odd: Box::new(ConstantTexture(vec3(0.9, 0.9, 0.9))),
+            }),
         }),
     }));
     for a in -11..11 {
@@ -57,11 +62,11 @@ fn random_scene() -> Vec<Box<dyn Hitable>> {
                         time1: 1.0,
                         radius: 0.2,
                         material: Box::new(Lambertian {
-                            albedo: vec3(
+                            albedo: Box::new(ConstantTexture(vec3(
                                 random_float() * random_float(),
                                 random_float() * random_float(),
                                 random_float() * random_float(),
-                            ),
+                            ))),
                         }),
                     })),
                     x if x < 0.95 => list.push(Box::new(Sphere {
@@ -95,7 +100,7 @@ fn random_scene() -> Vec<Box<dyn Hitable>> {
         center: vec3(-4.0, 1.0, 0.0),
         radius: 1.0,
         material: Box::new(Lambertian {
-            albedo: vec3(0.4, 0.2, 0.1),
+            albedo: Box::new(ConstantTexture(vec3(0.4, 0.2, 0.1))),
         }),
     }));
     list.push(Box::new(Sphere {
@@ -109,14 +114,42 @@ fn random_scene() -> Vec<Box<dyn Hitable>> {
     list
 }
 
+fn two_spheres() -> Vec<Box<dyn Hitable>> {
+    let list: Vec<Box<dyn Hitable>> = vec![
+        Box::new(Sphere {
+            center: vec3(0.0, -10.0, 0.0),
+            radius: 10.0,
+            material: Box::new(Lambertian {
+                albedo: Box::new(CheckerTexture {
+                    even: Box::new(ConstantTexture(vec3(0.2, 0.3, 0.1))),
+                    odd: Box::new(ConstantTexture(vec3(0.9, 0.9, 0.9))),
+                }),
+            }),
+        }),
+        Box::new(Sphere {
+            center: vec3(0.0, 10.0, 0.0),
+            radius: 10.0,
+            material: Box::new(Lambertian {
+                albedo: Box::new(CheckerTexture {
+                    even: Box::new(ConstantTexture(vec3(0.2, 0.3, 0.1))),
+                    odd: Box::new(ConstantTexture(vec3(0.9, 0.9, 0.9))),
+                }),
+            }),
+        }),
+    ];
+    list
+}
+
 fn main() {
     let now = std::time::Instant::now();
     let width = 1200;
     let height = 800;
     let samples = 10;
 
-    let world = random_scene();
+    //let world = random_scene();
+    let world = two_spheres();
     let accelerated_world = BVHNode::build(world, 0.0, 1.0);
+
     let look_from = vec3(13.0, 2.0, 3.0);
     let look_at = vec3(0.0, 0.0, 0.0);
     let camera = Camera::new(
