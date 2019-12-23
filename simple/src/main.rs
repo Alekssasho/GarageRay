@@ -115,26 +115,22 @@ fn random_scene() -> Vec<Box<dyn Hitable>> {
 }
 
 fn two_spheres() -> Vec<Box<dyn Hitable>> {
+    let checker = Box::new(CheckerTexture {
+        even: Box::new(ConstantTexture(vec3(0.2, 0.3, 0.1))),
+        odd: Box::new(ConstantTexture(vec3(0.9, 0.9, 0.9))),
+    });
     let list: Vec<Box<dyn Hitable>> = vec![
         Box::new(Sphere {
             center: vec3(0.0, -10.0, 0.0),
             radius: 10.0,
             material: Box::new(Lambertian {
-                albedo: Box::new(CheckerTexture {
-                    even: Box::new(ConstantTexture(vec3(0.2, 0.3, 0.1))),
-                    odd: Box::new(ConstantTexture(vec3(0.9, 0.9, 0.9))),
-                }),
+                albedo: checker.clone(),
             }),
         }),
         Box::new(Sphere {
             center: vec3(0.0, 10.0, 0.0),
             radius: 10.0,
-            material: Box::new(Lambertian {
-                albedo: Box::new(CheckerTexture {
-                    even: Box::new(ConstantTexture(vec3(0.2, 0.3, 0.1))),
-                    odd: Box::new(ConstantTexture(vec3(0.9, 0.9, 0.9))),
-                }),
-            }),
+            material: Box::new(Lambertian { albedo: checker }),
         }),
     ];
     list

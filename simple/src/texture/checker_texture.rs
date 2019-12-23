@@ -1,6 +1,7 @@
 use crate::math::*;
 use crate::texture::Texture;
 
+#[derive(Clone)]
 pub struct CheckerTexture {
     pub odd: Box<dyn Texture>,
     pub even: Box<dyn Texture>,

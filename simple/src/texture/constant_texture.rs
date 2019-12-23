@@ -1,6 +1,7 @@
 use crate::math::Vec3;
 use crate::texture::Texture;
 
+#[derive(Clone)]
 pub struct ConstantTexture(pub Vec3);
 
 impl Texture for ConstantTexture {
