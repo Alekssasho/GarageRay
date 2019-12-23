@@ -6,6 +6,9 @@ mod random;
 mod ray;
 mod texture;
 
+#[macro_use]
+extern crate lazy_static;
+
 use camera::*;
 use hitable::*;
 use material::*;
@@ -32,6 +35,7 @@ fn color(ray: &Ray, world: &dyn Hitable, depth: i32) -> Vec3 {
     }
 }
 
+#[allow(dead_code)]
 fn random_scene() -> Vec<Box<dyn Hitable>> {
     let n = 500;
     let mut list: Vec<Box<dyn Hitable>> = Vec::with_capacity(n + 1);
@@ -114,23 +118,20 @@ fn random_scene() -> Vec<Box<dyn Hitable>> {
     list
 }
 
-fn two_spheres() -> Vec<Box<dyn Hitable>> {
-    let checker = Box::new(CheckerTexture {
-        even: Box::new(ConstantTexture(vec3(0.2, 0.3, 0.1))),
-        odd: Box::new(ConstantTexture(vec3(0.9, 0.9, 0.9))),
-    });
+fn two_perlin_spheres() -> Vec<Box<dyn Hitable>> {
+    let noise = Box::new(NoiseTexture { scale: 4.0 });
     let list: Vec<Box<dyn Hitable>> = vec![
         Box::new(Sphere {
-            center: vec3(0.0, -10.0, 0.0),
-            radius: 10.0,
+            center: vec3(0.0, -1000.0, 0.0),
+            radius: 1000.0,
             material: Box::new(Lambertian {
-                albedo: checker.clone(),
+                albedo: noise.clone(),
             }),
         }),
         Box::new(Sphere {
-            center: vec3(0.0, 10.0, 0.0),
-            radius: 10.0,
-            material: Box::new(Lambertian { albedo: checker }),
+            center: vec3(0.0, 2.0, 0.0),
+            radius: 2.0,
+            material: Box::new(Lambertian { albedo: noise }),
         }),
     ];
     list
@@ -143,7 +144,7 @@ fn main() {
     let samples = 10;
 
     //let world = random_scene();
-    let world = two_spheres();
+    let world = two_perlin_spheres();
     let accelerated_world = BVHNode::build(world, 0.0, 1.0);
 
     let look_from = vec3(13.0, 2.0, 3.0);
