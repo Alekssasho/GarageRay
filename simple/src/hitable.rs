@@ -16,6 +16,8 @@ pub struct HitRecord<'a> {
     pub t: f32,
     pub p: Vec3,
     pub normal: Vec3,
+    pub u: f32,
+    pub v: f32,
     pub material: Option<&'a dyn Material>,
 }
 
@@ -25,6 +27,8 @@ impl Default for HitRecord<'_> {
             t: 0.0,
             p: vec3(0.0, 0.0, 0.0),
             normal: vec3(0.0, 0.0, 0.0),
+            u: 0.0,
+            v: 0.0,
             material: None,
         }
     }

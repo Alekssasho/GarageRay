@@ -119,19 +119,21 @@ fn random_scene() -> Vec<Box<dyn Hitable>> {
 }
 
 fn two_perlin_spheres() -> Vec<Box<dyn Hitable>> {
+    let img = image::open("untitled.png").unwrap();
+    let image_texture = Box::new(ImageTexture::new(img));
     let noise = Box::new(NoiseTexture { scale: 4.0 });
     let list: Vec<Box<dyn Hitable>> = vec![
         Box::new(Sphere {
             center: vec3(0.0, -1000.0, 0.0),
             radius: 1000.0,
             material: Box::new(Lambertian {
-                albedo: noise.clone(),
+                albedo: noise,
             }),
         }),
         Box::new(Sphere {
             center: vec3(0.0, 2.0, 0.0),
             radius: 2.0,
-            material: Box::new(Lambertian { albedo: noise }),
+            material: Box::new(Lambertian { albedo: image_texture }),
         }),
     ];
     list
@@ -148,12 +150,12 @@ fn main() {
     let accelerated_world = BVHNode::build(world, 0.0, 1.0);
 
     let look_from = vec3(13.0, 2.0, 3.0);
-    let look_at = vec3(0.0, 0.0, 0.0);
+    let look_at = vec3(0.0, 2.0, 0.0);
     let camera = Camera::new(
         look_from,
         look_at,
         vec3(0.0, 1.0, 0.0),
-        20.0,
+        30.0,
         width as f32 / height as f32,
         0.0,
         10.0,

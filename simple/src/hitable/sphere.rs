@@ -9,6 +9,15 @@ pub struct Sphere {
     pub material: Box<dyn Material>,
 }
 
+fn get_sphere_uv(p: Vec3) -> (f32, f32) {
+    let phi = p.z.atan2(p.x);
+    let theta = p.y.asin();
+    (
+        1.0 - (phi + std::f32::consts::PI) / (2.0 * std::f32::consts::PI),
+        (theta + std::f32::consts::PI / 2.0) / std::f32::consts::PI,
+    )
+}
+
 impl Hitable for Sphere {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
         let oc = ray.origin - self.center;
@@ -20,9 +29,12 @@ impl Hitable for Sphere {
             let temp = (-b - discriminant.sqrt()) / a;
             if temp < t_max && temp > t_min {
                 let p = ray.point_at_parameter(temp);
+                let (u, v) = get_sphere_uv((p - self.center) / self.radius);
                 return Some(HitRecord {
                     t: temp,
-                    p: p,
+                    p,
+                    u,
+                    v,
                     normal: (p - self.center) / self.radius,
                     material: Some(&*self.material),
                 });
@@ -30,9 +42,12 @@ impl Hitable for Sphere {
             let temp = (-b + discriminant.sqrt()) / a;
             if temp < t_max && temp > t_min {
                 let p = ray.point_at_parameter(temp);
+                let (u, v) = get_sphere_uv((p - self.center) / self.radius);
                 return Some(HitRecord {
                     t: temp,
-                    p: p,
+                    p,
+                    u,
+                    v,
                     normal: (p - self.center) / self.radius,
                     material: Some(&*self.material),
                 });
@@ -76,9 +91,12 @@ impl Hitable for MovingSphere {
             let temp = (-b - discriminant.sqrt()) / a;
             if temp < t_max && temp > t_min {
                 let p = ray.point_at_parameter(temp);
+                let (u, v) = get_sphere_uv((p - self.center(ray.time)) / self.radius);
                 return Some(HitRecord {
                     t: temp,
-                    p: p,
+                    p,
+                    u,
+                    v,
                     normal: (p - self.center(ray.time)) / self.radius,
                     material: Some(&*self.material),
                 });
@@ -86,9 +104,12 @@ impl Hitable for MovingSphere {
             let temp = (-b + discriminant.sqrt()) / a;
             if temp < t_max && temp > t_min {
                 let p = ray.point_at_parameter(temp);
+                let (u, v) = get_sphere_uv((p - self.center(ray.time)) / self.radius);
                 return Some(HitRecord {
                     t: temp,
-                    p: p,
+                    p,
+                    u,
+                    v,
                     normal: (p - self.center(ray.time)) / self.radius,
                     material: Some(&*self.material),
                 });
