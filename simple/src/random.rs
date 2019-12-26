@@ -9,7 +9,7 @@ pub fn random_in_unit_sphere() -> Vec3 {
                 rng.gen_range(0.0_f32, 1.0),
                 rng.gen_range(0.0_f32, 1.0),
                 rng.gen_range(0.0_f32, 1.0),
-            );
+            ) - vec3(1.0, 1.0, 1.0);
         if dot(p, p) < 1.0 {
             break p;
         }
