@@ -21,17 +21,19 @@ use rand::distributions::Distribution;
 
 fn color(ray: &Ray, world: &dyn Hitable, depth: i32) -> Vec3 {
     if let Some(rec) = world.hit(ray, 0.001, std::f32::MAX) {
-        // TODO: this is potentially wrong
-        match rec.material.unwrap().scatter(ray, &rec) {
-            Some((attenuation, scattered)) if depth < 50 => {
-                color(&scattered, world, depth + 1).mul_element_wise(attenuation)
+        let emitted = rec.material.unwrap().emitted(rec.u, rec.v, &rec.p);
+        if depth < 50 {
+            match rec.material.unwrap().scatter(ray, &rec) {
+                Some((attenuation, scattered)) => {
+                    emitted + color(&scattered, world, depth + 1).mul_element_wise(attenuation)
+                }
+                _ => emitted,
             }
-            _ => vec3(0.0, 0.0, 0.0),
+        } else {
+            emitted
         }
     } else {
-        let unit_direction = ray.direction.normalize();
-        let t = 0.5 * unit_direction.y + 1.0;
-        vec3(1.0, 1.0, 1.0).lerp(vec3(0.5, 0.7, 1.0), t)
+        Vec3::zero()
     }
 }
 
@@ -118,6 +120,7 @@ fn random_scene() -> Vec<Box<dyn Hitable>> {
     list
 }
 
+#[allow(dead_code)]
 fn two_perlin_spheres() -> Vec<Box<dyn Hitable>> {
     let img = image::open("untitled.png").unwrap();
     let image_texture = Box::new(ImageTexture::new(img));
@@ -126,14 +129,51 @@ fn two_perlin_spheres() -> Vec<Box<dyn Hitable>> {
         Box::new(Sphere {
             center: vec3(0.0, -1000.0, 0.0),
             radius: 1000.0,
+            material: Box::new(Lambertian { albedo: noise }),
+        }),
+        Box::new(Sphere {
+            center: vec3(0.0, 2.0, 0.0),
+            radius: 2.0,
             material: Box::new(Lambertian {
-                albedo: noise,
+                albedo: image_texture,
+            }),
+        }),
+    ];
+    list
+}
+
+#[allow(dead_code)]
+fn simple_light() -> Vec<Box<dyn Hitable>> {
+    let noise = Box::new(NoiseTexture { scale: 4.0 });
+    let list: Vec<Box<dyn Hitable>> = vec![
+        Box::new(Sphere {
+            center: vec3(0.0, -1000.0, 0.0),
+            radius: 1000.0,
+            material: Box::new(Lambertian {
+                albedo: noise.clone(),
             }),
         }),
         Box::new(Sphere {
             center: vec3(0.0, 2.0, 0.0),
             radius: 2.0,
-            material: Box::new(Lambertian { albedo: image_texture }),
+            material: Box::new(Lambertian { albedo: noise }),
+        }),
+        Box::new(Sphere {
+            center: vec3(0.0, 7.0, 0.0),
+            radius: 2.0,
+            material: Box::new(DiffuseLight {
+                emit: Box::new(ConstantTexture(vec3(4.0, 4.0, 4.0))),
+            }),
+        }),
+        Box::new(XYRect {
+            x0: 3.0,
+            x1: 5.0,
+            y0: 1.0,
+            y1: 3.0,
+            k: -2.0,
+            material: Box::new(DiffuseLight {
+                emit: Box::new(ConstantTexture(vec3(4.0, 4.0, 4.0))),
+            }),
         }),
     ];
     list
@@ -146,7 +186,8 @@ fn main() {
     let samples = 10;
 
     //let world = random_scene();
-    let world = two_perlin_spheres();
+    //let world = two_perlin_spheres();
+    let world = simple_light();
     let accelerated_world = BVHNode::build(world, 0.0, 1.0);
 
     let look_from = vec3(13.0, 2.0, 3.0);
@@ -168,7 +209,7 @@ fn main() {
 
     let mut image = image::ImageBuffer::new(width, height);
     for (x, y, pixel) in image.enumerate_pixels_mut() {
-        let color: Vec3 = (0..samples)
+        let mut color: Vec3 = (0..samples)
             .map(|_| {
                 let u = (x as f32 + uniform_distribution.sample(&mut rng)) / width as f32;
                 let v = ((height - y - 1) as f32 + uniform_distribution.sample(&mut rng))
@@ -179,6 +220,15 @@ fn main() {
             .sum::<Vec3>()
             / samples as f32;
 
+        if color.x > 1.0 {
+            color.x = 1.0;
+        }
+        if color.y > 1.0 {
+            color.y = 1.0;
+        }
+        if color.z > 1.0 {
+            color.z = 1.0;
+        }
         let ir = (255.99 * color.x.sqrt()) as u8;
         let ig = (255.99 * color.y.sqrt()) as u8;
         let ib = (255.99 * color.z.sqrt()) as u8;

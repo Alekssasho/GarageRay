@@ -7,8 +7,8 @@ pub mod noise_texture;
 
 pub use checker_texture::CheckerTexture;
 pub use constant_texture::ConstantTexture;
-pub use noise_texture::NoiseTexture;
 pub use image_texture::ImageTexture;
+pub use noise_texture::NoiseTexture;
 
 pub trait Texture: TextureClone {
     fn value(&self, u: f32, v: f32, p: &Vec3) -> Vec3;

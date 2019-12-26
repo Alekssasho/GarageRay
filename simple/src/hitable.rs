@@ -1,9 +1,11 @@
-pub mod bvh;
+mod bvh;
 pub mod hitable_list;
-pub mod sphere;
+mod sphere;
+mod xy_rect;
 
 pub use sphere::MovingSphere;
 pub use sphere::Sphere;
+pub use xy_rect::XYRect;
 
 pub use bvh::BVHNode;
 
