@@ -268,19 +268,246 @@ fn cornel_box() -> Vec<Box<dyn Hitable>> {
     list
 }
 
+#[allow(dead_code)]
+fn cornel_smoke() -> Vec<Box<dyn Hitable>> {
+    let red = Box::new(Lambertian {
+        albedo: Box::new(ConstantTexture(vec3(0.65, 0.05, 0.05))),
+    });
+    let white = Box::new(Lambertian {
+        albedo: Box::new(ConstantTexture(vec3(0.73, 0.73, 0.73))),
+    });
+    let green = Box::new(Lambertian {
+        albedo: Box::new(ConstantTexture(vec3(0.12, 0.45, 0.15))),
+    });
+    let light = Box::new(DiffuseLight {
+        emit: Box::new(ConstantTexture(vec3(7.0, 7.0, 7.0))),
+    });
+
+    let box1 = Box::new(Translate {
+        offset: vec3(130.0, 0.0, 65.0),
+        hitable: Box::new(RotateY::new(
+            Box::new(BoxHitable::new(
+                &vec3(0.0, 0.0, 0.0),
+                &vec3(165.0, 165.0, 165.0),
+                white.clone(),
+            )),
+            -18.0,
+        )),
+    });
+    let box2 = Box::new(Translate {
+        offset: vec3(265.0, 0.0, 295.0),
+        hitable: Box::new(RotateY::new(
+            Box::new(BoxHitable::new(
+                &vec3(0.0, 0.0, 0.0),
+                &vec3(165.0, 330.0, 165.0),
+                white.clone(),
+            )),
+            15.0,
+        )),
+    });
+
+    let list: Vec<Box<dyn Hitable>> = vec![
+        Box::new(FlipNormals(Box::new(YZRect {
+            y0: 0.0,
+            y1: 555.0,
+            z0: 0.0,
+            z1: 555.0,
+            k: 555.0,
+            material: green,
+        }))),
+        Box::new(YZRect {
+            y0: 0.0,
+            y1: 555.0,
+            z0: 0.0,
+            z1: 555.0,
+            k: 0.0,
+            material: red,
+        }),
+        Box::new(XZRect {
+            x0: 113.0,
+            x1: 443.0,
+            z0: 127.0,
+            z1: 432.0,
+            k: 554.0,
+            material: light,
+        }),
+        Box::new(FlipNormals(Box::new(XZRect {
+            x0: 0.0,
+            x1: 555.0,
+            z0: 0.0,
+            z1: 555.0,
+            k: 555.0,
+            material: white.clone(),
+        }))),
+        Box::new(XZRect {
+            x0: 0.0,
+            x1: 555.0,
+            z0: 0.0,
+            z1: 555.0,
+            k: 0.0,
+            material: white.clone(),
+        }),
+        Box::new(FlipNormals(Box::new(XYRect {
+            x0: 0.0,
+            x1: 555.0,
+            y0: 0.0,
+            y1: 555.0,
+            k: 555.0,
+            material: white.clone(),
+        }))),
+        Box::new(ConstantMedium::new(
+            box1,
+            0.01,
+            Box::new(ConstantTexture(vec3(1.0, 1.0, 1.0))),
+        )),
+        Box::new(ConstantMedium::new(
+            box2,
+            0.01,
+            Box::new(ConstantTexture(vec3(0.0, 0.0, 0.0))),
+        )),
+    ];
+    list
+}
+
+#[allow(dead_code)]
+fn final_scene() -> Vec<Box<dyn Hitable>> {
+    let white = Box::new(Lambertian {
+        albedo: Box::new(ConstantTexture(vec3(0.73, 0.73, 0.73))),
+    });
+    let ground = Box::new(Lambertian {
+        albedo: Box::new(ConstantTexture(vec3(0.48, 0.83, 0.53))),
+    });
+
+    let mut boxlist: Vec<Box<dyn Hitable>> = vec![];
+    for i in 0..20 {
+        for j in 0..20 {
+            let w = 100.0;
+            let x0 = -1000.0 + i as f32 * w;
+            let z0 = -1000.0 + j as f32 * w;
+            let y0 = 0.0;
+            let x1 = x0 + w;
+            let y1 = 100.0 * (random_float() + 0.01);
+            let z1 = z0 + w;
+            boxlist.push(Box::new(BoxHitable::new(
+                &vec3(x0, y0, z0),
+                &vec3(x1, y1, z1),
+                ground.clone(),
+            )));
+        }
+    }
+    let center = vec3(400.0, 400.0, 200.0);
+    let boundary = Sphere {
+        center: vec3(360.0, 150.0, 145.0),
+        radius: 70.0,
+        material: Box::new(Dielectric { ref_index: 1.5 }),
+    };
+    let boundary2 = Sphere {
+        center: vec3(0.0, 0.0, 0.0),
+        radius: 5000.0,
+        material: Box::new(Dielectric { ref_index: 1.5 }),
+    };
+    let img = image::open("earthmap.jpg").unwrap();
+    let image_texture = Box::new(ImageTexture::new(img));
+    let emat = Box::new(Lambertian {
+        albedo: image_texture,
+    });
+    let mut boxlist2: Vec<Box<dyn Hitable>> = vec![];
+    for _j in 0..1000 {
+        boxlist2.push(Box::new(Sphere {
+            center: vec3(
+                165.0 * random_float(),
+                165.0 * random_float(),
+                165.0 * random_float(),
+            ),
+            radius: 10.0,
+            material: white.clone(),
+        }))
+    }
+
+    let list: Vec<Box<dyn Hitable>> = vec![
+        Box::new(BVHNode::build(boxlist, 0.0, 1.0)),
+        Box::new(XZRect {
+            x0: 123.0,
+            x1: 423.0,
+            z0: 147.0,
+            z1: 412.0,
+            k: 554.0,
+            material: Box::new(DiffuseLight {
+                emit: Box::new(ConstantTexture(vec3(7.0, 7.0, 7.0))),
+            }),
+        }),
+        Box::new(MovingSphere {
+            center0: center,
+            center1: center + vec3(30.0, 0.0, 0.0),
+            radius: 50.0,
+            time0: 0.0,
+            time1: 1.0,
+            material: Box::new(Lambertian {
+                albedo: Box::new(ConstantTexture(vec3(0.7, 0.3, 0.1))),
+            }),
+        }),
+        Box::new(Sphere {
+            center: vec3(260.0, 150.0, 45.0),
+            radius: 50.0,
+            material: Box::new(Dielectric { ref_index: 1.5 }),
+        }),
+        Box::new(Sphere {
+            center: vec3(0.0, 150.0, 145.0),
+            radius: 50.0,
+            material: Box::new(Metal {
+                albedo: vec3(0.8, 0.8, 0.9),
+                fuzz: 10.0,
+            }),
+        }),
+        Box::new(boundary.clone()),
+        Box::new(ConstantMedium::new(
+            Box::new(boundary),
+            0.2,
+            Box::new(ConstantTexture(vec3(0.2, 0.4, 0.9))),
+        )),
+        Box::new(ConstantMedium::new(
+            Box::new(boundary2),
+            0.0001,
+            Box::new(ConstantTexture(vec3(1.0, 1.0, 1.0))),
+        )),
+        Box::new(Sphere {
+            center: vec3(400.0, 200.0, 400.0),
+            radius: 100.0,
+            material: emat,
+        }),
+        Box::new(Sphere {
+            center: vec3(220.0, 280.0, 300.0),
+            radius: 80.0,
+            material: Box::new(Lambertian {
+                albedo: Box::new(NoiseTexture { scale: 0.1 }),
+            }),
+        }),
+        Box::new(Translate {
+            offset: vec3(-100.0, 270.0, 395.0),
+            hitable: Box::new(RotateY::new(
+                Box::new(BVHNode::build(boxlist2, 0.0, 1.0)),
+                15.0,
+            )),
+        }),
+    ];
+    list
+}
+
 fn main() {
     let now = std::time::Instant::now();
     let width = 800;
     let height = 800;
-    let samples = 200;
+    let samples = 10;
 
     //let world = random_scene();
     //let world = two_perlin_spheres();
     //let world = simple_light();
-    let world = cornel_box();
+    //let world = cornel_box();
+    //let world = cornel_smoke();
+    let world = final_scene();
     let accelerated_world = BVHNode::build(world, 0.0, 1.0);
 
-    let look_from = vec3(278.0, 278.0, -800.0);
+    let look_from = vec3(478.0, 278.0, -600.0);
     let look_at = vec3(278.0, 278.0, 0.0);
     let camera = Camera::new(
         look_from,
