@@ -5,6 +5,7 @@ use crate::math::*;
 use crate::random::random_float;
 use crate::ray::Ray;
 
+#[derive(Clone)]
 pub struct Dielectric {
     pub ref_index: f32,
 }

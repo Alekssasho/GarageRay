@@ -5,6 +5,7 @@ use crate::random::random_in_unit_sphere;
 use crate::ray::Ray;
 use crate::texture::Texture;
 
+#[derive(Clone)]
 pub struct Lambertian {
     pub albedo: Box<dyn Texture>,
 }

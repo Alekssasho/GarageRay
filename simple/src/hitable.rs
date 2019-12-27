@@ -1,15 +1,19 @@
+mod box_hitable;
 mod bvh;
 mod flip_normals;
 pub mod hitable_list;
 mod rect;
 mod sphere;
+mod transformations;
 
+pub use box_hitable::BoxHitable;
 pub use flip_normals::FlipNormals;
 pub use rect::XYRect;
 pub use rect::XZRect;
 pub use rect::YZRect;
 pub use sphere::MovingSphere;
 pub use sphere::Sphere;
+pub use transformations::{RotateY, Translate};
 
 pub use bvh::BVHNode;
 

@@ -187,12 +187,6 @@ fn cornel_box() -> Vec<Box<dyn Hitable>> {
     let white = Box::new(Lambertian {
         albedo: Box::new(ConstantTexture(vec3(0.73, 0.73, 0.73))),
     });
-    let white2 = Box::new(Lambertian {
-        albedo: Box::new(ConstantTexture(vec3(0.73, 0.73, 0.73))),
-    });
-    let white3 = Box::new(Lambertian {
-        albedo: Box::new(ConstantTexture(vec3(0.73, 0.73, 0.73))),
-    });
     let green = Box::new(Lambertian {
         albedo: Box::new(ConstantTexture(vec3(0.12, 0.45, 0.15))),
     });
@@ -230,7 +224,7 @@ fn cornel_box() -> Vec<Box<dyn Hitable>> {
             z0: 0.0,
             z1: 555.0,
             k: 555.0,
-            material: white2,
+            material: white.clone(),
         }))),
         Box::new(XZRect {
             x0: 0.0,
@@ -238,7 +232,7 @@ fn cornel_box() -> Vec<Box<dyn Hitable>> {
             z0: 0.0,
             z1: 555.0,
             k: 0.0,
-            material: white3,
+            material: white.clone(),
         }),
         Box::new(FlipNormals(Box::new(XYRect {
             x0: 0.0,
@@ -246,8 +240,30 @@ fn cornel_box() -> Vec<Box<dyn Hitable>> {
             y0: 0.0,
             y1: 555.0,
             k: 555.0,
-            material: white,
+            material: white.clone(),
         }))),
+        Box::new(Translate {
+            offset: vec3(130.0, 0.0, 65.0),
+            hitable: Box::new(RotateY::new(
+                Box::new(BoxHitable::new(
+                    &vec3(0.0, 0.0, 0.0),
+                    &vec3(165.0, 165.0, 165.0),
+                    white.clone(),
+                )),
+                -18.0,
+            )),
+        }),
+        Box::new(Translate {
+            offset: vec3(265.0, 0.0, 295.0),
+            hitable: Box::new(RotateY::new(
+                Box::new(BoxHitable::new(
+                    &vec3(0.0, 0.0, 0.0),
+                    &vec3(165.0, 330.0, 165.0),
+                    white.clone(),
+                )),
+                15.0,
+            )),
+        }),
     ];
     list
 }
@@ -256,7 +272,7 @@ fn main() {
     let now = std::time::Instant::now();
     let width = 800;
     let height = 800;
-    let samples = 100;
+    let samples = 200;
 
     //let world = random_scene();
     //let world = two_perlin_spheres();

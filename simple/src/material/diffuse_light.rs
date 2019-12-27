@@ -4,6 +4,7 @@ use crate::math::*;
 use crate::ray::Ray;
 use crate::texture::Texture;
 
+#[derive(Clone)]
 pub struct DiffuseLight {
     pub emit: Box<dyn Texture>,
 }

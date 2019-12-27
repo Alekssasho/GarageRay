@@ -4,6 +4,7 @@ use crate::math::*;
 use crate::random::random_in_unit_sphere;
 use crate::ray::Ray;
 
+#[derive(Clone)]
 pub struct Metal {
     pub albedo: Vec3,
     pub fuzz: f32,
