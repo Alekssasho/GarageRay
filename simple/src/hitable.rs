@@ -1,11 +1,15 @@
 mod bvh;
+mod flip_normals;
 pub mod hitable_list;
+mod rect;
 mod sphere;
-mod xy_rect;
 
+pub use flip_normals::FlipNormals;
+pub use rect::XYRect;
+pub use rect::XZRect;
+pub use rect::YZRect;
 pub use sphere::MovingSphere;
 pub use sphere::Sphere;
-pub use xy_rect::XYRect;
 
 pub use bvh::BVHNode;
 

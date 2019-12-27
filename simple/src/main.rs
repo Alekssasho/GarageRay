@@ -179,24 +179,98 @@ fn simple_light() -> Vec<Box<dyn Hitable>> {
     list
 }
 
+#[allow(dead_code)]
+fn cornel_box() -> Vec<Box<dyn Hitable>> {
+    let red = Box::new(Lambertian {
+        albedo: Box::new(ConstantTexture(vec3(0.65, 0.05, 0.05))),
+    });
+    let white = Box::new(Lambertian {
+        albedo: Box::new(ConstantTexture(vec3(0.73, 0.73, 0.73))),
+    });
+    let white2 = Box::new(Lambertian {
+        albedo: Box::new(ConstantTexture(vec3(0.73, 0.73, 0.73))),
+    });
+    let white3 = Box::new(Lambertian {
+        albedo: Box::new(ConstantTexture(vec3(0.73, 0.73, 0.73))),
+    });
+    let green = Box::new(Lambertian {
+        albedo: Box::new(ConstantTexture(vec3(0.12, 0.45, 0.15))),
+    });
+    let light = Box::new(DiffuseLight {
+        emit: Box::new(ConstantTexture(vec3(15.0, 15.0, 15.0))),
+    });
+    let list: Vec<Box<dyn Hitable>> = vec![
+        Box::new(FlipNormals(Box::new(YZRect {
+            y0: 0.0,
+            y1: 555.0,
+            z0: 0.0,
+            z1: 555.0,
+            k: 555.0,
+            material: green,
+        }))),
+        Box::new(YZRect {
+            y0: 0.0,
+            y1: 555.0,
+            z0: 0.0,
+            z1: 555.0,
+            k: 0.0,
+            material: red,
+        }),
+        Box::new(XZRect {
+            x0: 213.0,
+            x1: 343.0,
+            z0: 227.0,
+            z1: 332.0,
+            k: 554.0,
+            material: light,
+        }),
+        Box::new(FlipNormals(Box::new(XZRect {
+            x0: 0.0,
+            x1: 555.0,
+            z0: 0.0,
+            z1: 555.0,
+            k: 555.0,
+            material: white2,
+        }))),
+        Box::new(XZRect {
+            x0: 0.0,
+            x1: 555.0,
+            z0: 0.0,
+            z1: 555.0,
+            k: 0.0,
+            material: white3,
+        }),
+        Box::new(FlipNormals(Box::new(XYRect {
+            x0: 0.0,
+            x1: 555.0,
+            y0: 0.0,
+            y1: 555.0,
+            k: 555.0,
+            material: white,
+        }))),
+    ];
+    list
+}
+
 fn main() {
     let now = std::time::Instant::now();
-    let width = 1200;
+    let width = 800;
     let height = 800;
-    let samples = 10;
+    let samples = 100;
 
     //let world = random_scene();
     //let world = two_perlin_spheres();
-    let world = simple_light();
+    //let world = simple_light();
+    let world = cornel_box();
     let accelerated_world = BVHNode::build(world, 0.0, 1.0);
 
-    let look_from = vec3(13.0, 2.0, 3.0);
-    let look_at = vec3(0.0, 2.0, 0.0);
+    let look_from = vec3(278.0, 278.0, -800.0);
+    let look_at = vec3(278.0, 278.0, 0.0);
     let camera = Camera::new(
         look_from,
         look_at,
         vec3(0.0, 1.0, 0.0),
-        30.0,
+        40.0,
         width as f32 / height as f32,
         0.0,
         10.0,
