@@ -15,7 +15,7 @@ pub trait Texture: TextureClone {
 }
 
 // Box cloning implementation
-pub trait TextureClone {
+pub trait TextureClone: Sync {
     fn box_clone(&self) -> Box<dyn Texture>;
 }
 

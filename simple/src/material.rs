@@ -22,7 +22,7 @@ pub trait Material: MaterialClone {
 }
 
 // Box cloning implementation
-pub trait MaterialClone {
+pub trait MaterialClone: Sync {
     fn box_clone(&self) -> Box<dyn Material>;
 }
 

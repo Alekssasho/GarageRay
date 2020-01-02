@@ -1,0 +1,11 @@
+[package]
+name = "garage_ray_vfb"
+version = "0.1.0"
+authors = ["Alekssasho <aleksandar.angelovv@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+garage_ray_simple = {path = "../simple" }
+
+[features]
+parallel = ["garage_ray_simple/parallel"]
