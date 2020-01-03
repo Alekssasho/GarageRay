@@ -1,6 +1,11 @@
 use garage_ray_simple::*;
 
-fn render_image() -> image::ImageBuffer<image::Rgb<u8>, Vec<u8>> {
+struct PixelRow {
+    y: u32,
+    data: Vec<(u8, u8, u8)>,
+}
+
+fn render_image(sender: std::sync::mpsc::Sender<PixelRow>) {
     let now = std::time::Instant::now();
     let width = 800;
     let height = 800;
@@ -28,16 +33,18 @@ fn render_image() -> image::ImageBuffer<image::Rgb<u8>, Vec<u8>> {
         1.0,
     );
 
-    let mut image = image::ImageBuffer::new(width, height);
-    for (x, y, pixel) in image.enumerate_pixels_mut() {
-        let (ir, ig, ib) =
-            evaluate_pixel(x, y, width, height, samples, &accelerated_world, &camera);
-        *pixel = image::Rgb([ir, ig, ib]);
+    for y in 0..800 {
+        let mut row_data = Vec::with_capacity(800);
+        for x in 0..800 {
+            let (ir, ig, ib) =
+                evaluate_pixel(x, y, width, height, samples, &accelerated_world, &camera);
+            //*pixel = image::Rgb([ir, ig, ib]);
+            row_data.push((ir, ig, ib));
+        }
+        sender.send(PixelRow { y, data: row_data }).unwrap();
     }
 
-    image.save("output.bmp").unwrap();
     println!("Render took {} seconds", now.elapsed().as_secs());
-    image
 }
 
 use glium::backend::Facade;
@@ -48,7 +55,26 @@ use imgui_glium_renderer::Renderer;
 use imgui_winit_support::{HiDpiMode, WinitPlatform};
 use std::time::Instant;
 
-fn ui_code(ui: &mut Ui, id: TextureId) {
+fn save_render(id: TextureId, renderer: &mut Renderer) {
+    let raw_data: Vec<Vec<(u8, u8, u8, u8)>> = (*renderer.textures().get(id).unwrap()).read();
+    let raw_data_flattened: Vec<u8> = raw_data
+        .into_iter()
+        .flatten()
+        .collect::<Vec<(u8, u8, u8, u8)>>()
+        .into_iter()
+        .flat_map(|data| {
+            let r = std::iter::once(data.0);
+            let g = std::iter::once(data.1);
+            let b = std::iter::once(data.2);
+            r.chain(g).chain(b)
+        })
+        .collect::<Vec<u8>>();
+    let image =
+        image::ImageBuffer::<image::Rgb<u8>, _>::from_raw(800, 800, raw_data_flattened).unwrap();
+    image.save("output.bmp").unwrap();
+}
+
+fn ui_code(ui: &mut Ui, id: TextureId, renderer: &mut Renderer) {
     let io = ui.io();
     Window::new(im_str!("Hello textures"))
         .size(io.display_size, Condition::Always)
@@ -65,9 +91,9 @@ fn ui_code(ui: &mut Ui, id: TextureId) {
         .build(ui, || {
             ui.menu_bar(|| {
                 ui.menu(im_str!("File"), true, || {
-                    // if MenuItem::new(im_str!("Do something")).build(ui) {
-                    //     println!("It works")
-                    // }
+                    if MenuItem::new(im_str!("Save Render")).build(ui) {
+                        save_render(id, renderer);
+                    }
                 });
             });
             ui.text(im_str!("Rendered Imaged:"));
@@ -78,8 +104,6 @@ fn ui_code(ui: &mut Ui, id: TextureId) {
 }
 
 fn main() {
-    let image = render_image();
-
     let mut events_loop = glutin::EventsLoop::new();
     let context = glutin::ContextBuilder::new().with_vsync(true);
     let builder = glutin::WindowBuilder::new()
@@ -113,10 +137,11 @@ fn main() {
     let mut last_frame = Instant::now();
     let mut run = true;
 
-    let dim = image.dimensions();
+    let dim: (u32, u32) = (800, 800);
+    let black_data: Vec<u8> = vec![0; (dim.0 * dim.1 * 3) as usize];
 
     let raw = glium::texture::RawImage2d {
-        data: std::borrow::Cow::Owned(image.into_raw()),
+        data: std::borrow::Cow::Owned(black_data),
         width: dim.0,
         height: dim.1,
         format: glium::texture::ClientFormat::U8U8U8,
@@ -124,6 +149,11 @@ fn main() {
     let gl_texture =
         glium::Texture2d::new(display.get_context(), raw).expect("Failed to create gl texture");
     let texture_id = renderer.textures().insert(std::rc::Rc::new(gl_texture));
+
+    let (sender, receiver) = std::sync::mpsc::channel();
+    let thread_handle = std::thread::spawn(move || {
+        render_image(sender);
+    });
 
     while run {
         events_loop.poll_events(|event| {
@@ -135,13 +165,26 @@ fn main() {
                 }
             }
         });
+
+        for pixel in receiver.try_iter() {
+            (*renderer.textures().get(texture_id).unwrap()).write(
+                glium::Rect {
+                    left: 0,
+                    bottom: pixel.y,
+                    width: dim.0,
+                    height: 1,
+                },
+                vec![pixel.data],
+            );
+        }
+
         let io = imgui.io_mut();
         platform
             .prepare_frame(io, &window)
             .expect("Failed to start frame");
         last_frame = io.update_delta_time(last_frame);
         let mut ui = imgui.frame();
-        ui_code(&mut ui, texture_id);
+        ui_code(&mut ui, texture_id, &mut renderer);
 
         let mut target = display.draw();
         target.clear_color_srgb(0.0, 0.0, 0.0, 1.0);
@@ -152,4 +195,5 @@ fn main() {
             .expect("Rendering failed");
         target.finish().expect("Failed to swap buffers");
     }
+    thread_handle.join().unwrap();
 }
