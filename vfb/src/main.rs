@@ -9,7 +9,7 @@ fn render_image(sender: std::sync::mpsc::Sender<PixelRow>) {
     let now = std::time::Instant::now();
     let width = 800;
     let height = 800;
-    let samples = 10;
+    let samples = 1000;
 
     //let world = random_scene();
     //let world = two_perlin_spheres();
@@ -41,7 +41,10 @@ fn render_image(sender: std::sync::mpsc::Sender<PixelRow>) {
             //*pixel = image::Rgb([ir, ig, ib]);
             row_data.push((ir, ig, ib));
         }
-        sender.send(PixelRow { y, data: row_data }).unwrap();
+        if let Err(_) = sender.send(PixelRow { y, data: row_data }) {
+            println!("Render interrupted at {} seconds", now.elapsed().as_secs());
+            return;
+        }
     }
 
     println!("Render took {} seconds", now.elapsed().as_secs());
@@ -195,5 +198,7 @@ fn main() {
             .expect("Rendering failed");
         target.finish().expect("Failed to swap buffers");
     }
+    drop(receiver);
+
     thread_handle.join().unwrap();
 }
