@@ -21,7 +21,7 @@ use texture::*;
 
 use rand::distributions::Distribution;
 
-#[cfg(feature="parallel")]
+#[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
 fn color(ray: &Ray, world: &dyn Hitable, depth: i32) -> Vec3 {
@@ -497,13 +497,21 @@ pub fn final_scene() -> Vec<Box<dyn Hitable>> {
     list
 }
 
-pub fn evaluate_pixel(x: u32, y: u32, width: u32, height: u32, samples: i32, world: &dyn Hitable, camera: &Camera) -> (u8, u8, u8) {
-    #[cfg(feature="parallel")]
+pub fn evaluate_pixel(
+    x: u32,
+    y: u32,
+    width: u32,
+    height: u32,
+    samples: i32,
+    world: &dyn Hitable,
+    camera: &Camera,
+) -> (u8, u8, u8) {
+    #[cfg(feature = "parallel")]
     let samples_vector: Vec<i32> = (0..samples).collect();
-    #[cfg(feature="parallel")]
+    #[cfg(feature = "parallel")]
     let samples_itr = samples_vector.par_iter();
 
-    #[cfg(not(feature="parallel"))]
+    #[cfg(not(feature = "parallel"))]
     let samples_itr = 0..samples;
 
     let mut color: Vec3 = samples_itr
@@ -511,26 +519,25 @@ pub fn evaluate_pixel(x: u32, y: u32, width: u32, height: u32, samples: i32, wor
             let mut rng = rand::thread_rng();
             let uniform_distribution = rand::distributions::Uniform::new(0.0, 1.0);
             let u = (x as f32 + uniform_distribution.sample(&mut rng)) / width as f32;
-            let v = ((height - y - 1) as f32 + uniform_distribution.sample(&mut rng))
-                / height as f32;
+            let v =
+                ((height - y - 1) as f32 + uniform_distribution.sample(&mut rng)) / height as f32;
             let ray = camera.get_ray(u, v);
             color(&ray, world, 0)
-            })
-            .sum::<Vec3>()
-            / samples as f32;
+        })
+        .sum::<Vec3>()
+        / samples as f32;
 
-        if color.x > 1.0 {
-            color.x = 1.0;
-        }
-        if color.y > 1.0 {
-            color.y = 1.0;
-        }
-        if color.z > 1.0 {
-            color.z = 1.0;
-        }
-        let ir = (255.99 * color.x.sqrt()) as u8;
-        let ig = (255.99 * color.y.sqrt()) as u8;
-        let ib = (255.99 * color.z.sqrt()) as u8;
-        (ir, ig, ib)
+    if color.x > 1.0 {
+        color.x = 1.0;
+    }
+    if color.y > 1.0 {
+        color.y = 1.0;
+    }
+    if color.z > 1.0 {
+        color.z = 1.0;
+    }
+    let ir = (255.99 * color.x.sqrt()) as u8;
+    let ig = (255.99 * color.y.sqrt()) as u8;
+    let ib = (255.99 * color.z.sqrt()) as u8;
+    (ir, ig, ib)
 }
-
