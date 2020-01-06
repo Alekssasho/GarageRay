@@ -19,17 +19,10 @@ impl Hitable for Vec<Box<dyn Hitable>> {
         if self.len() < 1 {
             return None;
         }
-        let mut result = if let Some(aabb) = self.first().unwrap().bounding_box(t0, t1) {
-            aabb
-        } else {
-            return None;
-        };
+        let mut result = self.first().unwrap().bounding_box(t0, t1)?;
         for hitable in &self[1..] {
-            if let Some(aabb) = hitable.bounding_box(t0, t1) {
-                result = surrounding_box(aabb, result);
-            } else {
-                return None;
-            }
+            let aabb = hitable.bounding_box(t0, t1)?;
+            result = surrounding_box(aabb, result);
         }
         Some(result)
     }
