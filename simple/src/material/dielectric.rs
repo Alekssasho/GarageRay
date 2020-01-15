@@ -1,6 +1,6 @@
 use crate::hitable::HitRecord;
 use crate::material::metal::reflect;
-use crate::material::Material;
+use crate::material::{Material, ScatterResult};
 use crate::math::*;
 use crate::random::random_float;
 use crate::ray::Ray;
@@ -28,7 +28,7 @@ fn schlick(cosine: f32, ref_index: f32) -> f32 {
 }
 
 impl Material for Dielectric {
-    fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Option<(Vec3, Ray)> {
+    fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Option<ScatterResult> {
         let reflected = reflect(&ray.direction, &rec.normal);
         let (outward_normal, ni_over_nt, cosine) = if dot(ray.direction, rec.normal) > 0.0 {
             (
@@ -52,23 +52,25 @@ impl Material for Dielectric {
         };
 
         if random_float() < reflect_probability {
-            Some((
-                vec3(1.0, 1.0, 1.0),
-                Ray {
+            Some(ScatterResult{
+                albedo: vec3(1.0, 1.0, 1.0),
+                scattered_ray: Ray {
                     origin: rec.p,
                     direction: reflected,
                     ..*ray
                 },
-            ))
+                pdf: 0.0,
+            })
         } else {
-            Some((
-                vec3(1.0, 1.0, 1.0),
-                Ray {
+            Some(ScatterResult{
+                albedo: vec3(1.0, 1.0, 1.0),
+                scattered_ray: Ray {
                     origin: rec.p,
                     direction: refracted.unwrap(),
                     ..*ray
                 },
-            ))
+                pdf: 0.0
+            })
         }
     }
 }

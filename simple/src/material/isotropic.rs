@@ -7,14 +7,15 @@ use crate::texture::*;
 pub struct Isotropic(pub Box<dyn Texture>);
 
 impl Material for Isotropic {
-    fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Option<(Vec3, Ray)> {
-        Some((
-            self.0.value(rec.u, rec.v, &rec.p),
-            Ray {
+    fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Option<ScatterResult> {
+        Some(ScatterResult{
+            albedo: self.0.value(rec.u, rec.v, &rec.p),
+            scattered_ray: Ray {
                 origin: rec.p,
                 direction: random_in_unit_sphere(),
                 ..*ray
             },
-        ))
+            pdf: 0.0,
+        })
     }
 }

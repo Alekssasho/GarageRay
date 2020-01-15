@@ -1,5 +1,5 @@
 use crate::hitable::HitRecord;
-use crate::material::Material;
+use crate::material::{Material, ScatterResult};
 use crate::math::*;
 use crate::random::random_in_unit_sphere;
 use crate::ray::Ray;
@@ -15,15 +15,15 @@ pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
 }
 
 impl Material for Metal {
-    fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Option<(Vec3, Ray)> {
+    fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Option<ScatterResult> {
         let reflected = reflect(&ray.direction.normalize(), &rec.normal);
-        let scattered = Ray {
+        let scattered_ray = Ray {
             origin: rec.p,
             direction: reflected + self.fuzz * random_in_unit_sphere(),
             ..*ray
         };
-        if dot(scattered.direction, rec.normal) > 0.0 {
-            Some((self.albedo, scattered))
+        if dot(scattered_ray.direction, rec.normal) > 0.0 {
+            Some(ScatterResult{albedo: self.albedo, scattered_ray, pdf: 0.0})
         } else {
             None
         }

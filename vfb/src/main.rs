@@ -9,17 +9,19 @@ fn render_image(sender: std::sync::mpsc::Sender<PixelRow>) {
     let now = std::time::Instant::now();
     let width = 800;
     let height = 800;
-    let samples = 1000;
+    let samples = 100;
 
     //let world = random_scene();
     //let world = two_perlin_spheres();
     //let world = simple_light();
-    //let world = cornel_box();
+    let world = cornel_box();
     //let world = cornel_smoke();
-    let world = final_scene();
+    //let world = final_scene();
     let accelerated_world = BVHNode::build(world, 0.0, 1.0);
+    //let accelerated_world = world;
 
-    let look_from = vec3(478.0, 278.0, -600.0);
+    //let look_from = vec3(478.0, 278.0, -600.0);
+    let look_from = vec3(278.0, 278.0, -800.0);
     let look_at = vec3(278.0, 278.0, 0.0);
     let camera = Camera::new(
         look_from,

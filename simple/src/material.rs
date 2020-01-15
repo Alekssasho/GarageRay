@@ -14,8 +14,17 @@ use crate::hitable::HitRecord;
 use crate::math::*;
 use crate::ray::Ray;
 
+pub struct ScatterResult {
+    pub albedo: Vec3,
+    pub scattered_ray: Ray,
+    pub pdf: f32,
+}
+
 pub trait Material: MaterialClone {
-    fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Option<(Vec3, Ray)>;
+    fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Option<ScatterResult>;
+    fn scattering_pdf(&self, _ray: &Ray, _rec: &HitRecord, _scattered: &Ray) -> f32 {
+        0.0
+    }
     fn emitted(&self, _u: f32, _v: f32, _p: &Vec3) -> Vec3 {
         Vec3::zero()
     }

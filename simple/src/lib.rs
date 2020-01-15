@@ -29,8 +29,8 @@ fn color(ray: &Ray, world: &dyn Hitable, depth: i32) -> Vec3 {
         let emitted = rec.material.unwrap().emitted(rec.u, rec.v, &rec.p);
         if depth < 50 {
             match rec.material.unwrap().scatter(ray, &rec) {
-                Some((attenuation, scattered)) => {
-                    emitted + color(&scattered, world, depth + 1).mul_element_wise(attenuation)
+                Some(ScatterResult{albedo, scattered_ray, pdf}) => {
+                    emitted +  (albedo * rec.material.unwrap().scattering_pdf(ray, &rec, &scattered_ray)).mul_element_wise(color(&scattered_ray, world, depth + 1)) / pdf
                 }
                 _ => emitted,
             }
@@ -185,7 +185,7 @@ fn simple_light() -> Vec<Box<dyn Hitable>> {
 }
 
 #[allow(dead_code)]
-fn cornel_box() -> Vec<Box<dyn Hitable>> {
+pub fn cornel_box() -> Vec<Box<dyn Hitable>> {
     let red = Box::new(Lambertian {
         albedo: Box::new(ConstantTexture(vec3(0.65, 0.05, 0.05))),
     });
