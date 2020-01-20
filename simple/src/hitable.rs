@@ -49,6 +49,8 @@ impl Default for HitRecord<'_> {
 pub trait Hitable: Sync {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord>;
     fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB>;
+    fn pdf_value(&self, _o: &Vec3, _v: &Vec3) -> f32 { 0.0 }
+    fn random(&self, _o: &Vec3) -> Vec3 { vec3(1.0, 0.0, 0.0) }
 }
 
 #[derive(Clone, Copy)]

@@ -2,6 +2,7 @@ use crate::hitable::{HitRecord, Hitable, AABB};
 use crate::material::Material;
 use crate::math::*;
 use crate::ray::Ray;
+use crate::random::random_float;
 
 pub struct XYRect {
     pub x0: f32,
@@ -76,6 +77,22 @@ impl Hitable for XZRect {
             min: vec3(self.x0, self.k - 0.0001, self.z0),
             max: vec3(self.x1, self.k + 0.0001, self.z1),
         })
+    }
+
+    fn pdf_value(&self, o: &Vec3, v: &Vec3) -> f32 {
+        if let Some(rec) = self.hit(&Ray{origin: *o, direction: *v, time: 0.0}, 0.001, std::f32::MAX) {
+            let area = (self.x1 - self.x0) * (self.z1 - self.z0);
+            let distance_squared = rec.t * rec.t * v.magnitude2();
+            let cosine = (dot(*v, rec.normal) / v.magnitude()).abs();
+            distance_squared / (cosine * area)
+        } else {
+            0.0
+        }
+    }
+
+    fn random(&self, o: &Vec3) -> Vec3 {
+        let random_point = vec3(self.x0 + random_float() * (self.x1 - self.x0), self.k, self.z0 + random_float() * (self.z1 - self.z0));
+        random_point - o
     }
 }
 

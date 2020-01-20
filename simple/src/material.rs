@@ -25,7 +25,7 @@ pub trait Material: MaterialClone {
     fn scattering_pdf(&self, _ray: &Ray, _rec: &HitRecord, _scattered: &Ray) -> f32 {
         0.0
     }
-    fn emitted(&self, _u: f32, _v: f32, _p: &Vec3) -> Vec3 {
+    fn emitted(&self, _ray: &Ray, _rec: &HitRecord, _u: f32, _v: f32, _p: &Vec3) -> Vec3 {
         Vec3::zero()
     }
 }

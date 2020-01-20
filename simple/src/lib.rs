@@ -6,6 +6,7 @@ mod random;
 mod ray;
 mod texture;
 mod onb;
+mod pdf;
 
 #[macro_use]
 extern crate lazy_static;
@@ -19,6 +20,7 @@ pub use math::*;
 use random::random_float;
 use ray::*;
 use texture::*;
+use pdf::*;
 
 use rand::distributions::Distribution;
 
@@ -27,11 +29,33 @@ use rayon::prelude::*;
 
 fn color(ray: &Ray, world: &dyn Hitable, depth: i32) -> Vec3 {
     if let Some(rec) = world.hit(ray, 0.001, std::f32::MAX) {
-        let emitted = rec.material.unwrap().emitted(rec.u, rec.v, &rec.p);
+        let emitted = rec.material.unwrap().emitted(ray, &rec, rec.u, rec.v, &rec.p);
         if depth < 50 {
             match rec.material.unwrap().scatter(ray, &rec) {
                 Some(ScatterResult{albedo, scattered_ray, pdf}) => {
-                    emitted +  (albedo * rec.material.unwrap().scattering_pdf(ray, &rec, &scattered_ray)).mul_element_wise(color(&scattered_ray, world, depth + 1)) / pdf
+                    let light_shape = XZRect{
+                        x0: 213.0,
+                        x1: 343.0,
+                        z0: 227.0,
+                        z1: 332.0,
+                        k: 554.0,
+                        material: Box::new(Dielectric{ref_index: 1.0}),
+                    };
+                    let p0 = HitablePDF{
+                        hitable: &light_shape,
+                        o: rec.p,
+                    };
+                    let p1 = Cosine::new(&rec.normal);
+                    let p = Mixture{
+                        p: [&p0, &p1]
+                    };
+                    let scattered = Ray {
+                        origin: rec.p,
+                        direction: p.generate(),
+                        ..*ray
+                    };
+                    let pdf = p.value(&scattered.direction);
+                    emitted +  (albedo * rec.material.unwrap().scattering_pdf(ray, &rec, &scattered)).mul_element_wise(color(&scattered, world, depth + 1)) / pdf
                 }
                 _ => emitted,
             }
@@ -216,14 +240,14 @@ pub fn cornel_box() -> Vec<Box<dyn Hitable>> {
             k: 0.0,
             material: red,
         }),
-        Box::new(XZRect {
+        Box::new(FlipNormals(Box::new(XZRect {
             x0: 213.0,
             x1: 343.0,
             z0: 227.0,
             z1: 332.0,
             k: 554.0,
             material: light,
-        }),
+        }))),
         Box::new(FlipNormals(Box::new(XZRect {
             x0: 0.0,
             x1: 555.0,
