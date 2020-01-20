@@ -5,6 +5,7 @@ mod math;
 mod random;
 mod ray;
 mod texture;
+mod onb;
 
 #[macro_use]
 extern crate lazy_static;

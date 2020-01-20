@@ -16,6 +16,15 @@ pub fn random_in_unit_sphere() -> Vec3 {
     }
 }
 
+pub fn random_cosine_direction() -> Vec3 {
+    let (r1, r2) = (random_float(), random_float());
+    let z = (1.0 - r2).sqrt();
+    let phi = 2.0 * std::f32::consts::PI * r1;
+    let x = phi.cos() * 2.0 * r2.sqrt();
+    let y = phi.sin() * 2.0 * r2.sqrt();
+    vec3(x, y, z)
+}
+
 pub fn random_float() -> f32 {
     let mut rng = rand::thread_rng();
     rng.gen_range(0.0_f32, 1.0)
