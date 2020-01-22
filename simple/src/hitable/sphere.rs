@@ -1,6 +1,8 @@
 use crate::hitable::{surrounding_box, HitRecord, Hitable, AABB};
 use crate::material::Material;
 use crate::math::*;
+use crate::onb::*;
+use crate::random::*;
 use crate::ray::Ray;
 
 #[derive(Clone)]
@@ -63,6 +65,41 @@ impl Hitable for Sphere {
             max: self.center + vec3(self.radius, self.radius, self.radius),
         })
     }
+
+    fn pdf_value(&self, o: &Vec3, v: &Vec3) -> f32 {
+        if let Some(_) = self.hit(
+            &Ray {
+                origin: *o,
+                direction: *v,
+                time: 0.0,
+            },
+            0.001,
+            std::f32::MAX,
+        ) {
+            let cos_theta_max =
+                (1.0 - self.radius * self.radius / (self.center - o).magnitude2()).sqrt();
+            let solid_angle = 2.0 * std::f32::consts::PI * (1.0 - cos_theta_max);
+            1.0 / solid_angle
+        } else {
+            0.0
+        }
+    }
+    fn random(&self, o: &Vec3) -> Vec3 {
+        let direction = self.center - o;
+        let distance_squared = direction.magnitude2();
+        let uvw = ONB::build_from_w(&direction);
+        uvw.local_vec(&random_to_sphere(self.radius, distance_squared))
+    }
+}
+
+fn random_to_sphere(radius: f32, distance_squared: f32) -> Vec3 {
+    let r1 = random_float();
+    let r2 = random_float();
+    let z = 1.0 + r2 * ((1.0 - radius * radius / distance_squared).sqrt() - 1.0);
+    let phi = 2.0 * std::f32::consts::PI * r1;
+    let x = phi.cos() * (1.0 - z * z).sqrt();
+    let y = phi.sin() * (1.0 - z * z).sqrt();
+    vec3(x, y, z)
 }
 
 pub struct MovingSphere {

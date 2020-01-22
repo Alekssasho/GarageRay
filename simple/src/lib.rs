@@ -220,7 +220,7 @@ fn simple_light() -> Vec<Box<dyn Hitable>> {
 }
 
 #[allow(dead_code)]
-pub fn cornel_box() -> (Vec<Box<dyn Hitable>>, Box<dyn Hitable>) {
+pub fn cornel_box() -> (Vec<Box<dyn Hitable>>, Vec<Box<dyn Hitable>>) {
     let red = Box::new(Lambertian {
         albedo: Box::new(ConstantTexture(vec3(0.65, 0.05, 0.05))),
     });
@@ -233,7 +233,7 @@ pub fn cornel_box() -> (Vec<Box<dyn Hitable>>, Box<dyn Hitable>) {
     let light = Box::new(DiffuseLight {
         emit: Box::new(ConstantTexture(vec3(15.0, 15.0, 15.0))),
     });
-    let light_shape = Box::new(XZRect {
+    let light_shape_1 = Box::new(XZRect {
         x0: 213.0,
         x1: 343.0,
         z0: 227.0,
@@ -241,6 +241,13 @@ pub fn cornel_box() -> (Vec<Box<dyn Hitable>>, Box<dyn Hitable>) {
         k: 554.0,
         material: light.clone(),
     });
+    let light_shape_2 = Box::new(Sphere {
+        center: vec3(190.0, 90.0, 190.0),
+        radius: 90.0,
+        material: light.clone(),
+    });
+    let light_shape: Vec<Box<dyn Hitable>> = vec![light_shape_1, light_shape_2];
+
     let aluminum = Box::new(Metal {
         albedo: vec3(0.8, 0.85, 0.88),
         fuzz: 0.0,
@@ -294,16 +301,21 @@ pub fn cornel_box() -> (Vec<Box<dyn Hitable>>, Box<dyn Hitable>) {
             k: 555.0,
             material: white.clone(),
         }))),
-        Box::new(Translate {
-            offset: vec3(130.0, 0.0, 65.0),
-            hitable: Box::new(RotateY::new(
-                Box::new(BoxHitable::new(
-                    &vec3(0.0, 0.0, 0.0),
-                    &vec3(165.0, 165.0, 165.0),
-                    white.clone(),
-                )),
-                -18.0,
-            )),
+        // Box::new(Translate {
+        //     offset: vec3(130.0, 0.0, 65.0),
+        //     hitable: Box::new(RotateY::new(
+        //         Box::new(BoxHitable::new(
+        //             &vec3(0.0, 0.0, 0.0),
+        //             &vec3(165.0, 165.0, 165.0),
+        //             white.clone(),
+        //         )),
+        //         -18.0,
+        //     )),
+        // }),
+        Box::new(Sphere {
+            center: vec3(190.0, 90.0, 190.0),
+            radius: 90.0,
+            material: Box::new(Dielectric { ref_index: 1.5 }),
         }),
         Box::new(Translate {
             offset: vec3(265.0, 0.0, 295.0),
@@ -311,7 +323,7 @@ pub fn cornel_box() -> (Vec<Box<dyn Hitable>>, Box<dyn Hitable>) {
                 Box::new(BoxHitable::new(
                     &vec3(0.0, 0.0, 0.0),
                     &vec3(165.0, 330.0, 165.0),
-                    aluminum,
+                    white,
                 )),
                 15.0,
             )),

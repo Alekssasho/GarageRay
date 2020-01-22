@@ -45,7 +45,7 @@ fn render_image(sender: std::sync::mpsc::Sender<PixelRow>) {
                 height,
                 samples,
                 &accelerated_world,
-                &*light_shape,
+                &light_shape,
                 &camera,
             );
             //*pixel = image::Rgb([ir, ig, ib]);

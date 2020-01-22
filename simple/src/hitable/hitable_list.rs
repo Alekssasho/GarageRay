@@ -1,4 +1,6 @@
 use crate::hitable::{surrounding_box, HitRecord, Hitable, AABB};
+use crate::math::*;
+use crate::random::*;
 use crate::ray::Ray;
 
 impl Hitable for Vec<Box<dyn Hitable>> {
@@ -25,5 +27,17 @@ impl Hitable for Vec<Box<dyn Hitable>> {
             result = surrounding_box(aabb, result);
         }
         Some(result)
+    }
+
+    fn pdf_value(&self, o: &Vec3, v: &Vec3) -> f32 {
+        let weight = 1.0 / self.len() as f32;
+        self.into_iter()
+            .map(|hitable| weight * hitable.pdf_value(o, v))
+            .sum()
+    }
+
+    fn random(&self, o: &Vec3) -> Vec3 {
+        let index = (random_float() * self.len() as f32) as usize;
+        self[index].random(o)
     }
 }
