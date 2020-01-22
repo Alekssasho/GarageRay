@@ -52,7 +52,7 @@ impl Material for Dielectric {
         };
 
         if random_float() < reflect_probability {
-            Some(ScatterResult{
+            Some(ScatterResult {
                 albedo: vec3(1.0, 1.0, 1.0),
                 scattered_ray: Ray {
                     origin: rec.p,
@@ -62,14 +62,14 @@ impl Material for Dielectric {
                 pdf: 0.0,
             })
         } else {
-            Some(ScatterResult{
+            Some(ScatterResult {
                 albedo: vec3(1.0, 1.0, 1.0),
                 scattered_ray: Ray {
                     origin: rec.p,
                     direction: refracted.unwrap(),
                     ..*ray
                 },
-                pdf: 0.0
+                pdf: 0.0,
             })
         }
     }

@@ -1,23 +1,24 @@
-mod dielectric;
+//mod dielectric;
 mod diffuse_light;
-mod isotropic;
+//mod isotropic;
 mod lambertian;
 mod metal;
 
-pub use dielectric::Dielectric;
+//pub use dielectric::Dielectric;
 pub use diffuse_light::DiffuseLight;
-pub use isotropic::Isotropic;
+//pub use isotropic::Isotropic;
 pub use lambertian::Lambertian;
 pub use metal::Metal;
 
 use crate::hitable::HitRecord;
 use crate::math::*;
+use crate::pdf::PDF;
 use crate::ray::Ray;
 
 pub struct ScatterResult {
-    pub albedo: Vec3,
-    pub scattered_ray: Ray,
-    pub pdf: f32,
+    pub attenuation: Vec3,
+    pub specular_ray: Option<Ray>,
+    pub pdf: Option<Box<dyn PDF>>,
 }
 
 pub trait Material: MaterialClone {

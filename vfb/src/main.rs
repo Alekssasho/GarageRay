@@ -9,12 +9,12 @@ fn render_image(sender: std::sync::mpsc::Sender<PixelRow>) {
     let now = std::time::Instant::now();
     let width = 800;
     let height = 800;
-    let samples = 100;
+    let samples = 1000;
 
     //let world = random_scene();
     //let world = two_perlin_spheres();
     //let world = simple_light();
-    let world = cornel_box();
+    let (world, light_shape) = cornel_box();
     //let world = cornel_smoke();
     //let world = final_scene();
     let accelerated_world = BVHNode::build(world, 0.0, 1.0);
@@ -38,8 +38,16 @@ fn render_image(sender: std::sync::mpsc::Sender<PixelRow>) {
     for y in 0..800 {
         let mut row_data = Vec::with_capacity(800);
         for x in 0..800 {
-            let (ir, ig, ib) =
-                evaluate_pixel(x, y, width, height, samples, &accelerated_world, &camera);
+            let (ir, ig, ib) = evaluate_pixel(
+                x,
+                y,
+                width,
+                height,
+                samples,
+                &accelerated_world,
+                &*light_shape,
+                &camera,
+            );
             //*pixel = image::Rgb([ir, ig, ib]);
             row_data.push((ir, ig, ib));
         }

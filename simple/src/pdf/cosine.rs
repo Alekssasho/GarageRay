@@ -1,7 +1,7 @@
-use crate::pdf::PDF;
 use crate::math::*;
-use crate::random::random_cosine_direction;
 use crate::onb::ONB;
+use crate::pdf::PDF;
+use crate::random::random_cosine_direction;
 
 pub struct Cosine {
     uvw: ONB,

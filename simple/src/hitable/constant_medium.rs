@@ -56,7 +56,8 @@ impl ConstantMedium {
         ConstantMedium {
             boundary,
             density,
-            phase_function: Box::new(Isotropic(texture)),
+            //phase_function: Box::new(Isotropic(texture)),
+            phase_function: Box::new(Lambertian { albedo: texture }),
         }
     }
 }

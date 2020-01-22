@@ -16,14 +16,12 @@ impl ONB {
         };
         let v = w.cross(a).normalize();
         let u = w.cross(v);
-        ONB {
-            u, v, w
-        }
+        ONB { u, v, w }
     }
 
-    pub fn local_points(&self, a: f32, b: f32, c: f32) -> Vec3 {
-        a * self.u + b * self.v + c * self.w
-    }
+    // pub fn local_points(&self, a: f32, b: f32, c: f32) -> Vec3 {
+    //     a * self.u + b * self.v + c * self.w
+    // }
 
     pub fn local_vec(&self, a: &Vec3) -> Vec3 {
         a.x * self.u + a.y * self.v + a.z * self.w

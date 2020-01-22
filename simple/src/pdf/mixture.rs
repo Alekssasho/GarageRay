@@ -1,5 +1,5 @@
-use crate::pdf::PDF;
 use crate::math::*;
+use crate::pdf::PDF;
 use crate::random::random_float;
 
 pub struct Mixture<'a> {

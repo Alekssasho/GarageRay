@@ -1,6 +1,6 @@
-use crate::pdf::PDF;
-use crate::math::*;
 use crate::hitable::Hitable;
+use crate::math::*;
+use crate::pdf::PDF;
 
 pub struct HitablePDF<'a> {
     pub hitable: &'a dyn Hitable,
